@@ -22,10 +22,10 @@ type SigninFormData = z.infer<typeof signinSchema>;
 
 export function LoginForm({
 	className,
+	callbackUrl,
 	...props
-}: React.ComponentPropsWithoutRef<"form">) {
+}: React.ComponentPropsWithoutRef<"form"> & { callbackUrl?: string | null }) {
 	const router = useRouter();
-	const searchParams = useSearchParams();
 	const { login, isLoading } = useAuth();
 
 	const {
@@ -51,8 +51,7 @@ export function LoginForm({
 				}
 				
 				// Redirect to original destination or dashboard
-				const redirectTo = searchParams.get("redirect") || "/dashboard";
-				router.push(redirectTo);
+				router.push(callbackUrl || "/dashboard");
 			} else {
 				toast.error("Login Failed", {
 					description: result?.message || "Invalid credentials",

@@ -11,7 +11,7 @@ function LoginContent() {
   return <LoginForm callbackUrl={callbackUrl} />;
 }
 
-export default function LoginPage() {
+export default function LoginClientPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <LoginContent />
