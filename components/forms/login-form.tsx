@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { useAuthContext } from "@/components/auth/AuthProvider";
+import { Loader2 } from "lucide-react";
 
 // Zod validation schema
 const signinSchema = z.object({
@@ -30,12 +31,15 @@ export function LoginForm({
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isSubmitting },
 	} = useForm<SigninFormData>({
 		resolver: zodResolver(signinSchema),
 	});
 
+	const isDisabled = isLoading || isSubmitting;
+
 	const onSubmit = async (data: SigninFormData) => {
+
 		try {
 			const result = await login(data.userName, data.password);
 
@@ -78,7 +82,7 @@ export function LoginForm({
 						id="userName"
 						type="text"
 						placeholder="Enter Username"
-						disabled={isLoading}
+						disabled={isDisabled}
 						{...register("userName")}
 					/>
 					{errors.userName && (
@@ -93,7 +97,7 @@ export function LoginForm({
 						id="password"
 						type="password"
 						placeholder="Enter Password"
-						disabled={isLoading}
+						disabled={isDisabled}
 						{...register("password")}
 					/>
 					{errors.password && (
@@ -102,8 +106,9 @@ export function LoginForm({
 						</span>
 					)}
 				</div>
-				<Button type="submit" className="w-full" disabled={isLoading}>
-					{isLoading ? "Logging in..." : "Login"}
+				<Button type="submit" className="w-full" disabled={isDisabled}>
+					{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+					{isSubmitting ? "Logging in..." : "Login"}
 				</Button>
 			</div>
 			<div className="text-center text-sm">

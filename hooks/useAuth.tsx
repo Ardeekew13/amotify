@@ -136,9 +136,9 @@ export const useAuth = () => {
 		const response = await signupMutation({
 			variables: { firstName, lastName, userName, password },
 		});
-		if (response.data.signup.success) {
-			const newToken = response.data.signup.token;
-			const newUser = response.data.signup.user;
+		if (response.data.createUser.success) {
+			const newToken = response.data.createUser.token;
+			const newUser = response.data.createUser.user;
 			
 			// Clear old cache first
 			await client.clearStore();

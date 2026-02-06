@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
-import {
-	GET_DASHBOARD_SUMMARY,
-	GET_DASHBOARD_ACTION_ITEMS,
-	GET_DASHBOARD_RECENT_EXPENSES,
-} from "@/app/api/graphql/dashboard";
+import { GET_DASHBOARD } from "@/app/api/graphql/dashboard";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { DashboardActionList } from "@/components/dashboard/DashboardActionList";
 import { DashboardRecentExpenses } from "@/components/dashboard/DashboardRecentExpenses";
@@ -15,38 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function DashboardPage() {
 	const { user } = useAuthContext();
 
-	const {
-		data: summaryData,
-		loading: summaryLoading,
-		error: summaryError,
-	} = useQuery(GET_DASHBOARD_SUMMARY, {
+	// Single optimized query for all dashboard data
+	const { data, loading, error } = useQuery(GET_DASHBOARD, {
 		skip: !user,
 		fetchPolicy: "cache-and-network",
 	});
 
-	const {
-		data: actionItemsData,
-		loading: actionItemsLoading,
-		error: actionItemsError,
-	} = useQuery(GET_DASHBOARD_ACTION_ITEMS, {
-		skip: !user,
-		fetchPolicy: "cache-and-network",
-	});
+	const isLoading = loading || !user;
 
-	const {
-		data: recentExpensesData,
-		loading: recentExpensesLoading,
-		error: recentExpensesError,
-	} = useQuery(GET_DASHBOARD_RECENT_EXPENSES, {
-		skip: !user,
-		fetchPolicy: "cache-and-network",
-	});
-
-	const loading =
-		summaryLoading || actionItemsLoading || recentExpensesLoading || !user;
-	const error = summaryError || actionItemsError || recentExpensesError;
-
-	if (loading) {
+	if (isLoading) {
 		return (
 			<div className="space-y-6">
 				<div>
@@ -80,10 +53,10 @@ export default function DashboardPage() {
 		);
 	}
 
-	const summary = summaryData?.getDashboardSummary?.data;
-	const actionItems = actionItemsData?.getDashboardActionItems?.data || [];
-	const recentExpenses =
-		recentExpensesData?.getDashboardRecentExpenses?.data || [];
+	const dashboardData = data?.getDashboard?.data;
+	const summary = dashboardData?.summary;
+	const actionItems = dashboardData?.actionItems || [];
+	const recentExpenses = dashboardData?.recentExpenses || [];
 
 	return (
 		<div className="space-y-6">
