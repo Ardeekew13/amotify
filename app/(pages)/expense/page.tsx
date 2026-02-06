@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GetExpenses } from "@/interface/common/common";
 import { useQuery } from "@apollo/client/react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useAuthContext } from "@/components/auth/AuthProvider";
@@ -12,6 +13,7 @@ import { useAuthContext } from "@/components/auth/AuthProvider";
 export default function ExpensePage() {
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState("all");
+	const [isNavigating, setIsNavigating] = useState(false);
 
 	const { data, loading, refetch } = useQuery<GetExpenses>(GET_EXPENSES, {
 		variables: { filter: activeTab === "my" ? "my" : null },
@@ -19,6 +21,7 @@ export default function ExpensePage() {
 
 	const handleAdd = useCallback(
 		(id?: string) => {
+			setIsNavigating(true);
 			if (id) {
 				router.push(`/expense/manage/${id}`);
 				return;
@@ -41,6 +44,16 @@ export default function ExpensePage() {
 		};
 	}, [data, loading, handleAdd]);
 
+	if (isNavigating) {
+		return (
+			<div className="flex items-center justify-center min-h-[60vh]">
+				<div className="flex flex-col items-center gap-4">
+					<Loader2 className="h-12 w-12 animate-spin text-primary" />
+					<p className="text-muted-foreground">Loading...</p>
+				</div>
+			</div>
+		);
+	}
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between mb-6">

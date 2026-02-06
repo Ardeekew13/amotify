@@ -398,9 +398,10 @@ const Page = () => {
 						<Input
 							type="number"
 							id="amount"
-							placeholder="Amount"
-							value={amount}
-							onChange={(e) => setAmount(parseFloat(e.target.value))}
+							placeholder="0"
+							value={amount === 0 ? "" : amount}
+							onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+							onFocus={(e) => e.target.select()}
 						/>
 					</div>
 					{data?.getExpenseById?.expense && (
@@ -436,6 +437,7 @@ const Page = () => {
 						existingUrl={existingReceiptUrl || null}
 						multiple={true}
 						maxFiles={5}
+						someoneAlreadyPaid={someoneAlreadyPaid ?? false}
 					/>
 				</div>
 

@@ -49,12 +49,18 @@ function EditableSplitCell({
 	row: any;
 	onSplitPercentageChange: (userId: string, split: number) => void;
 }) {
+	// Show empty string for 0 values so users can type fresh
+	const formatValue = (val: number | undefined) => {
+		if (val === undefined || val === 0) return "";
+		return String(val);
+	};
+
 	const [localValue, setLocalValue] = useState(
-		String(row.original.splitPercentage || 0),
+		formatValue(row.original.splitPercentage),
 	);
 
 	useEffect(() => {
-		setLocalValue(String(row.original.splitPercentage || 0));
+		setLocalValue(formatValue(row.original.splitPercentage));
 	}, [row.original.splitPercentage]);
 
 	const handleBlur = () => {
@@ -70,15 +76,22 @@ function EditableSplitCell({
 		}
 	};
 
+	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+		// Select all text on focus for easy replacement
+		e.target.select();
+	};
+
 	return (
 		<div className="flex justify-end">
 			<Input
 				type="number"
 				value={localValue}
+				placeholder="0"
 				className="w-32 text-right"
 				onChange={(e) => setLocalValue(e.target.value)}
 				onBlur={handleBlur}
 				onKeyDown={handleKeyDown}
+				onFocus={handleFocus}
 			/>
 		</div>
 	);
@@ -92,12 +105,18 @@ function EditableAmountCell({
 	row: any;
 	onAmountChange: (userId: string, amount: number) => void;
 }) {
+	// Show empty string for 0 values so users can type fresh
+	const formatValue = (val: number | undefined) => {
+		if (val === undefined || val === 0) return "";
+		return String(val);
+	};
+
 	const [localValue, setLocalValue] = useState(
-		String(row.original.amount || 0),
+		formatValue(row.original.amount),
 	);
 
 	useEffect(() => {
-		setLocalValue(String(row.original.amount || 0));
+		setLocalValue(formatValue(row.original.amount));
 	}, [row.original.amount]);
 
 	const handleBlur = () => {
@@ -113,15 +132,22 @@ function EditableAmountCell({
 		}
 	};
 
+	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+		// Select all text on focus for easy replacement
+		e.target.select();
+	};
+
 	return (
 		<div className="flex justify-end">
 			<Input
 				type="number"
 				value={localValue}
+				placeholder="0"
 				className="w-32 text-right"
 				onChange={(e) => setLocalValue(e.target.value)}
 				onBlur={handleBlur}
 				onKeyDown={handleKeyDown}
+				onFocus={handleFocus}
 			/>
 		</div>
 	);

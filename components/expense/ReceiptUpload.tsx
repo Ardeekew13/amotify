@@ -15,6 +15,7 @@ interface ReceiptUploadProps {
 	existingUrl?: string | string[] | null; // Support both single and array
 	multiple?: boolean;
 	maxFiles?: number;
+	someoneAlreadyPaid: boolean; // Optional prop to indicate if someone has already paid
 }
 
 export function ReceiptUpload({
@@ -23,6 +24,7 @@ export function ReceiptUpload({
 	existingUrl,
 	multiple = false,
 	maxFiles = 5,
+	someoneAlreadyPaid,
 }: ReceiptUploadProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -177,18 +179,20 @@ export function ReceiptUpload({
 									className="object-cover cursor-pointer hover:opacity-75 transition-opacity"
 									onClick={() => handleReplace(url)}
 								/>
-								<Button
-									type="button"
-									variant="destructive"
-									size="icon"
-									className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-									onClick={(e) => {
-										e.stopPropagation();
-										handleRemove(index);
-									}}
-								>
-									<X className="h-3 w-3" />
-								</Button>
+								{!someoneAlreadyPaid && (
+									<Button
+										type="button"
+										variant="destructive"
+										size="icon"
+										className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+										onClick={(e) => {
+											e.stopPropagation();
+											handleRemove(index);
+										}}
+									>
+										<X className="h-3 w-3" />
+									</Button>
+								)}
 							</div>
 						))}
 					</div>
