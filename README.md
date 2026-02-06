@@ -93,68 +93,6 @@ amotify/
 └── package.json
 ```
 
-## 🔌 GraphQL API
-
-The GraphQL API is available at `/api/graphql`.
-
-### Example Queries
-
-**Get all users:**
-```graphql
-query {
-  users {
-    id
-    name
-    email
-    createdAt
-  }
-}
-```
-
-**Get single user:**
-```graphql
-query {
-  user(id: "USER_ID") {
-    id
-    name
-    email
-    createdAt
-  }
-}
-```
-
-### Example Mutations
-
-**Create user:**
-```graphql
-mutation {
-  createUser(name: "John Doe", email: "john@example.com") {
-    id
-    name
-    email
-    createdAt
-  }
-}
-```
-
-**Update user:**
-```graphql
-mutation {
-  updateUser(id: "USER_ID", name: "Jane Doe") {
-    id
-    name
-    email
-  }
-}
-```
-
-**Delete user:**
-```graphql
-mutation {
-  deleteUser(id: "USER_ID")
-}
-```
-
 ## 🎨 Adding shadcn/ui Components
 
 To add more shadcn/ui components:

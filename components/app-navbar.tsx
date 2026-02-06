@@ -50,8 +50,8 @@ export function AppNavbar() {
 	};
 
 	return (
-		<header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-6">
-			<div className="flex flex-1 items-center gap-6">
+		<header className="sticky top-0 z-50 flex h-16 items-center justify-between w-full gap-4 border-b bg-background px-6">
+			<div className="flex items-center gap-6">
 				<h1
 					className="cursor-pointer text-lg font-semibold"
 					onClick={() => router.push("/dashboard")}
@@ -88,13 +88,18 @@ export function AppNavbar() {
 					<DropdownMenuTrigger asChild>
 						<Button variant="ghost" className="relative justify-end h-8 w-40 ">
 							<Avatar className="h-8 w-8">
-								<AvatarImage src="/avatars/01.png" alt={user.userName} />
+								<AvatarImage
+									src="/avatars/01.png"
+									alt={`${user?.firstName} ${user?.lastName}`}
+								/>
 								<AvatarFallback>
-									{user.firstName?.[0]}
+									{user?.firstName?.[0]}
 									{user.lastName?.[0]}
 								</AvatarFallback>
 							</Avatar>
-							<h1>{user.firstName} {user.lastName}</h1>
+							<h1>
+								{user.firstName} {user.lastName}
+							</h1>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent className="w-56" align="end" forceMount>

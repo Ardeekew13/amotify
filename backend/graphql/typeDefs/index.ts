@@ -1,6 +1,7 @@
 import { sharedTypes } from "../types";
 import { expenseTypeDefs } from "./expense";
 import { userTypeDefs } from "./user";
+import { dashboardTypeDefs } from "./dashboard";
 
 const baseTypeDef = `#graphql
   type Query {
@@ -17,4 +18,5 @@ export const typeDefs = [
 	sharedTypes,
 	userTypeDefs,
 	expenseTypeDefs,
+	dashboardTypeDefs,
 ];

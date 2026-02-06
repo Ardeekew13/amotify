@@ -2,26 +2,24 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCookie } from "@/lib/cookies";
+import { useAuth } from "@/hooks/useAuth";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function HomePage() {
+	const { status } = useAuth();
 	const router = useRouter();
 
 	useEffect(() => {
-		// Check if user is authenticated
-		const token = getCookie("auth_token");
-		
-		if (token) {
+		if (status === "authenticated") {
 			router.replace("/dashboard");
-		} else {
+		} else if (status === "unauthenticated") {
 			router.replace("/login");
 		}
-	}, [router]);
+	}, [status, router]);
 
-	// Show loading state while redirecting
 	return (
-		<div className="flex items-center justify-center min-h-screen">
-			<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+		<div className="flex h-screen items-center justify-center">
+			<Spinner />
 		</div>
 	);
 }
