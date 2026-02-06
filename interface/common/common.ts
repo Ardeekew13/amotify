@@ -77,3 +77,33 @@ export type CreateExpense = {
 	};
 };
 
+export type DashboardSummary = {
+	youOwe: number;
+	youAreOwed: number;
+	activeExpenses: number;
+};
+
+export type GetDashboardSummary = {
+	getDashboardSummary: {
+		success: boolean;
+		message: string;
+		data: DashboardSummary;
+	};
+};
+
+export type GetDashboardActionItems = {
+	getDashboardActionItems: {
+		success: boolean;
+		message: string;
+		data: Expense[];
+	};
+};
+
+export type GetDashboardRecentExpenses = {
+	getDashboardRecentExpenses: {
+		success: boolean;
+		message: string;
+		data: Expense[];
+	};
+};
+

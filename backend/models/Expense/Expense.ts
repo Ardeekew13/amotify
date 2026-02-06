@@ -102,21 +102,32 @@ const ExpenseSchema = new Schema<IExpense>(
 			type: String,
 			enum: Object.values(ExpenseStatus),
 			default: ExpenseStatus.AWAITING_PAYMENT,
-			required: true,
-		},
-		createdAt: {
-			type: String,
-			default: () => new Date().toISOString(),
-		},
-		updatedAt: {
-			type: String,
-			default: () => new Date().toISOString(),
 		},
 	},
 	{
-		// Remove timestamps: true since we're handling them manually
+		timestamps: true,
+		toJSON: { virtuals: true },
+		toObject: { virtuals: true },
 	},
 );
+
+ExpenseSchema.virtual("paidByUser", {
+	ref: "User",
+	localField: "paidBy",
+	foreignField: "_id",
+	justOne: true,
+});
+
+// Pre-save middleware to update status
+ExpenseSchema.pre<IExpense>("save", function (next) {
+	const allPaid = this.split.every(
+		(member) => member.status === MemberExpenseStatus.PAID,
+	);
+	this.status = allPaid
+		? ExpenseStatus.COMPLETED
+		: ExpenseStatus.AWAITING_PAYMENT;
+	next();
+});
 
 // Document-level validation for receipts (runs after all fields are set)
 ExpenseSchema.pre("validate", function (next) {
@@ -125,21 +136,29 @@ ExpenseSchema.pre("validate", function (next) {
 
 	// Validate receipt URLs
 	if (receiptUrls.length > 5) {
-		this.invalidate('receiptUrl', 'Maximum 5 receipt URLs allowed');
+		this.invalidate("receiptUrl", "Maximum 5 receipt URLs allowed");
 		return next();
 	}
 
 	// Validate array lengths match
 	if (receiptUrls.length !== receiptPublicIds.length) {
-		this.invalidate('receiptPublicId', `Receipt public IDs (${receiptPublicIds.length}) must match receipt URLs (${receiptUrls.length})`);
+		this.invalidate(
+			"receiptPublicId",
+			`Receipt public IDs (${receiptPublicIds.length}) must match receipt URLs (${receiptUrls.length})`,
+		);
 		return next();
 	}
 
 	// Validate all URLs are valid image URLs
 	if (receiptUrls.length > 0) {
-		const invalidUrls = receiptUrls.filter((url: string) => !isValidImageUrl(url));
+		const invalidUrls = receiptUrls.filter(
+			(url: string) => !isValidImageUrl(url),
+		);
 		if (invalidUrls.length > 0) {
-			this.invalidate('receiptUrl', `Invalid image URLs: ${invalidUrls.join(', ')}`);
+			this.invalidate(
+				"receiptUrl",
+				`Invalid image URLs: ${invalidUrls.join(", ")}`,
+			);
 			return next();
 		}
 	}

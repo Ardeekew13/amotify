@@ -484,9 +484,6 @@ const Page = () => {
 					onConfirm={handleConfirmAddMembers}
 					currentMembers={selectedUsers}
 				/>
-				<div className="flex justify-between items-center">
-					<h2 className="text-lg font-semibold">Split Details</h2>
-				</div>
 			</div>
 		</div>
 	);

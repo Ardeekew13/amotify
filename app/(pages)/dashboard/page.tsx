@@ -1,99 +1,111 @@
+"use client";
+
+import { useQuery } from "@apollo/client";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { BanknoteIcon, Home, Users } from "lucide-react";
+	GET_DASHBOARD_SUMMARY,
+	GET_DASHBOARD_ACTION_ITEMS,
+	GET_DASHBOARD_RECENT_EXPENSES,
+} from "@/app/api/graphql/dashboard";
+import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
+import { DashboardActionList } from "@/components/dashboard/DashboardActionList";
+import { DashboardRecentExpenses } from "@/components/dashboard/DashboardRecentExpenses";
+import { useAuth } from "@/hooks/useAuth";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
+	const { user } = useAuth();
+
+	const {
+		data: summaryData,
+		loading: summaryLoading,
+		error: summaryError,
+	} = useQuery(GET_DASHBOARD_SUMMARY, {
+		skip: !user,
+		fetchPolicy: "cache-and-network",
+	});
+
+	const {
+		data: actionItemsData,
+		loading: actionItemsLoading,
+		error: actionItemsError,
+	} = useQuery(GET_DASHBOARD_ACTION_ITEMS, {
+		skip: !user,
+		fetchPolicy: "cache-and-network",
+	});
+
+	const {
+		data: recentExpensesData,
+		loading: recentExpensesLoading,
+		error: recentExpensesError,
+	} = useQuery(GET_DASHBOARD_RECENT_EXPENSES, {
+		skip: !user,
+		fetchPolicy: "cache-and-network",
+	});
+
+	const loading =
+		summaryLoading || actionItemsLoading || recentExpensesLoading || !user;
+	const error = summaryError || actionItemsError || recentExpensesError;
+
+	if (loading) {
+		return (
+			<div className="space-y-6">
+				<div>
+					<Skeleton className="h-8 w-48" />
+					<Skeleton className="h-4 w-96 mt-2" />
+				</div>
+				<div className="grid gap-4 md:grid-cols-3">
+					<Skeleton className="h-24" />
+					<Skeleton className="h-24" />
+					<Skeleton className="h-24" />
+				</div>
+				<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+					<div className="lg:col-span-2">
+						<Skeleton className="h-64" />
+					</div>
+					<div className="lg:col-span-3">
+						<Skeleton className="h-64" />
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="text-center py-10">
+				<p className="text-red-500">
+					Error loading dashboard data. Please try again later.
+				</p>
+			</div>
+		);
+	}
+
+	const summary = summaryData?.getDashboardSummary?.data;
+	const actionItems = actionItemsData?.getDashboardActionItems?.data || [];
+	const recentExpenses =
+		recentExpensesData?.getDashboardRecentExpenses?.data || [];
+
 	return (
 		<div className="space-y-6">
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 				<p className="text-muted-foreground">
-					Welcome to Amotify - Track shared expenses and settle balances easily
+					Welcome back, {user.firstName}! Here&apos;s what&apos;s happening.
 				</p>
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Your Balance</CardTitle>
-						<BanknoteIcon className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="flex justify-between items-center">
-							<span className="text-sm text-muted-foreground">You owe</span>
-							<span className="text-lg font-semibold text-red-600">₱0.00</span>
-						</div>
-						<div className="flex justify-between items-center">
-							<span className="text-sm text-muted-foreground">
-								You are owed
-							</span>
-							<span className="text-lg font-semibold text-green-600">
-								₱0.00
-							</span>
-						</div>
-						<div className="border-t pt-2 flex justify-between items-center">
-							<span className="text-sm font-medium">Net balance</span>
-							<span className="text-xl font-bold">₱0.00</span>
-						</div>
-					</CardContent>
-				</Card>
+			{summary && <DashboardSummaryCards summary={summary} />}
 
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-2 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Shared Expenses
-						</CardTitle>
-						<Home className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">To Be Determined Soon</div>
-						<p className="text-xs text-muted-foreground">
-							Active expense groups
-						</p>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Outstanding Settlements
-						</CardTitle>
-						<Users className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">0</div>
-						<p className="text-xs text-muted-foreground">Pending payments</p>
-					</CardContent>
-				</Card>
-			</div>
-
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-				<Card className="col-span-4">
-					<CardHeader>
-						<CardTitle>Quick Actions</CardTitle>
-						<CardDescription>Common tasks to get you started</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-2">
-						<p>Coming Soon</p>
-					</CardContent>
-				</Card>
-
-				<Card className="col-span-3">
-					<CardHeader>
-						<CardTitle>Recent Activity</CardTitle>
-						<CardDescription>Latest updates in the system</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<p className="text-sm text-muted-foreground">
-							No recent activity to display
-						</p>
-					</CardContent>
-				</Card>
+			<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+				<div className="lg:col-span-2">
+					<DashboardActionList
+						actionItems={actionItems}
+						currentUserId={user._id}
+					/>
+				</div>
+				<div className="lg:col-span-3">
+					<DashboardRecentExpenses expenses={recentExpenses} />
+				</div>
 			</div>
 		</div>
 	);

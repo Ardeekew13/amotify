@@ -19,9 +19,11 @@ export const GET_EXPENSES = gql`
 						firstName
 						lastName
 					}
+					status
 					amount
 					splitPercentage
 				}
+				status
 				paidBy
 				paidByUser {
 					_id

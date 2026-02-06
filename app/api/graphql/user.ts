@@ -18,7 +18,20 @@ export const GET_USERS_EXCLUDE_SELF = gql`
 	}
 `;
 
-
+export const ME_QUERY = gql`
+  query Me {
+    me {
+      success
+      message
+      user {
+        _id
+        firstName
+        lastName
+        userName
+      }
+    }
+  }
+`;
 
 //Mutations
 export const CREATE_USER = gql`

@@ -52,7 +52,7 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 				const amount = parseFloat(row.getValue("amount"));
 				const formatted = new Intl.NumberFormat("en-US", {
 					style: "currency",
-					currency: "USD",
+					currency: "PHP",
 				}).format(amount);
 				return <div className="font-semibold">{formatted}</div>;
 			},
@@ -119,7 +119,7 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			<CardHeader>
 				<CardTitle>All Expenses</CardTitle>
 				<CardDescription>
-					Here&apos;s a list of your expenses for this month.
+					Here&apos;s a list of your expense records.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
