@@ -9,8 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { useAuth } from "@/hooks/useAuth";
-import { setCookie } from "@/lib/cookies";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 
 // Zod validation schema
 const signinSchema = z.object({
@@ -26,7 +25,7 @@ export function LoginForm({
 	...props
 }: React.ComponentPropsWithoutRef<"form"> & { callbackUrl?: string | null }) {
 	const router = useRouter();
-	const { login, isLoading } = useAuth();
+	const { login, isLoading } = useAuthContext();
 
 	const {
 		register,
@@ -44,11 +43,6 @@ export function LoginForm({
 				toast.success("Login Successful", {
 					description: "You have been logged in successfully.",
 				});
-				
-				// Store token in cookie for middleware
-				if (result.data.login.token) {
-					setCookie("auth_token", result.data.login.token, 7);
-				}
 				
 				// Redirect to original destination or dashboard
 				router.push(callbackUrl || "/dashboard");

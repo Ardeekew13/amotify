@@ -67,9 +67,9 @@ export const DashboardRecentExpenses = ({
                     {dayjs(expense.createdAt).format("MMM DD, YYYY")}
                   </TableCell>
                   <TableCell>
-                    <Badge
+                    <Badge 
                       variant={
-                        expense.status === "COMPLETED" ? "default" : "outline"
+                        expense.status === "COMPLETED" ? "default" : "secondary"
                       }
                     >
                       {expense.status.replace("_", " ")}

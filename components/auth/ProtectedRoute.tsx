@@ -1,19 +1,21 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/components/auth/AuthProvider";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Spinner } from "../ui/spinner";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-	const { status } = useAuth();
+export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+	const { status } = useAuthContext();
 	const router = useRouter();
+	const pathname = usePathname();
 
 	useEffect(() => {
 		if (status === "unauthenticated") {
-			router.replace("/login");
+			const callbackUrl = encodeURIComponent(pathname);
+			router.replace(`/login`);
 		}
-	}, [status, router]);
+	}, [status, router, pathname]);
 
 	if (status === "loading") {
 		return (
@@ -29,5 +31,3 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 	return null;
 };
-
-export default ProtectedRoute;

@@ -3,11 +3,13 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
 import { ReactNode } from "react";
+import { getCookie } from "@/lib/cookies";
 
 // Auth middleware to add JWT token to headers
+// This runs on EVERY request, so it always gets the current token
 const authLink = new ApolloLink((operation, forward) => {
-	// Get token from localStorage
-	const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+	// Get token from cookie dynamically on each request
+	const token = typeof window !== 'undefined' ? getCookie('token') : null;
 	
 	// Add authorization header if token exists
 	operation.setContext({

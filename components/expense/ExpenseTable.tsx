@@ -36,16 +36,6 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			size: 200,
 		},
 		{
-			accessorKey: "description",
-			header: "Description",
-			cell: ({ row }) => (
-				<div className="text-muted-foreground">
-					{row.getValue("description") || "—"}
-				</div>
-			),
-			size: 250,
-		},
-		{
 			accessorKey: "amount",
 			header: "Amount",
 			cell: ({ row }) => {
@@ -103,9 +93,9 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 								View Details
 							</DropdownMenuItem>
 
-							<DropdownMenuItem className="text-red-600">
+							{/* <DropdownMenuItem className="text-red-600">
 								Delete
-							</DropdownMenuItem>
+							</DropdownMenuItem> */}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				);

@@ -7,7 +7,7 @@ import { GetExpenses } from "@/interface/common/common";
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 
 export default function ExpensePage() {
 	const router = useRouter();

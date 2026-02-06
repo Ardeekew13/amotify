@@ -15,6 +15,7 @@ interface AuthContextType {
 	token: string | null;
 	isAuthenticated: boolean;
 	isLoading: boolean;
+	status: "loading" | "authenticated" | "unauthenticated";
 	login: (userName: string, password: string) => Promise<any>;
 	signup: (
 		firstName: string,

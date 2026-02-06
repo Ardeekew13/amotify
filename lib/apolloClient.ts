@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from "@apollo/client";
+import { getCookie } from "@/lib/cookies";
 
 const httpLink = new HttpLink({
   uri: "/api/graphql", // Your Next.js GraphQL endpoint
@@ -6,8 +7,8 @@ const httpLink = new HttpLink({
 
 // Auth middleware to add JWT token to headers
 const authLink = new ApolloLink((operation, forward) => {
-  // Get token from localStorage
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  // Get token from cookie (consistent with useAuth)
+  const token = typeof window !== 'undefined' ? getCookie('token') : null;
   
   // Add authorization header if token exists
   operation.setContext({

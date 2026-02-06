@@ -94,13 +94,14 @@ export const DashboardActionList = ({
                     <Badge
                       variant={
                         actionInfo.status === MemberExpenseStatus.PENDING
-                          ? "destructive"
+                          ? "warning"
                           : "secondary"
                       }
+											className="text-center"
                     >
                       {actionInfo.status.replace("_", " ")}
                     </Badge>
-                    <Link href={`/expense/${item._id}`}>
+                    <Link href={`/expense/manage/${item._id}`}>
                       <Button size="sm">{actionInfo.action}</Button>
                     </Link>
                   </div>

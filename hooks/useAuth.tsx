@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery, useMutation, useApolloClient } from "@apollo/client";
-import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { ME_QUERY, LOGIN_MUTATION, SIGNUP_MUTATION } from "@/app/api/graphql/user";
 import { setCookie, getCookie, deleteCookie } from "@/lib/cookies";
@@ -12,64 +11,74 @@ type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 export const useAuth = () => {
-	const [token, setToken] = useState<string | null>(null);
-	const { data, loading, error, refetch } = useQuery(ME_QUERY, {
-		skip: !token,
-	});
-	const client = useApolloClient();
-	const router = useRouter();
 	const [status, setStatus] = useState<AuthStatus>("loading");
 	const [user, setUser] = useState<User | null>(null);
+	const [token, setToken] = useState<string | null>(() => getCookie("token"));
+	const client = useApolloClient();
+
+	const { loading, error, data, refetch } = useQuery(ME_QUERY, {
+		skip: !token,
+		fetchPolicy: "network-only",
+	});
 
 	const [loginMutation] = useMutation(LOGIN_MUTATION);
 	const [signupMutation] = useMutation(SIGNUP_MUTATION);
 
 	const logout = useCallback(async () => {
-		deleteCookie("token");
+		// Clear user state
+		setUser(null);
 		setToken(null);
+		
+		// Clear cookie
+		deleteCookie("token");
+		
+		// Clear any legacy localStorage token
+		if (typeof window !== "undefined") {
+			localStorage.removeItem("auth_token");
+		}
+		
+		// Set status to unauthenticated
+		setStatus("unauthenticated");
+		
+		// Reset Apollo Client store to clear all cached data
 		await client.resetStore();
-		router.replace("/login");
-	}, [client, router]);
+	}, [client]);
 
 	const getToken = useCallback(() => {
 		return getCookie("token");
 	}, []);
 
 	useEffect(() => {
-		const storedToken = getToken();
-		if (storedToken) {
-			setToken(storedToken);
-		} else {
+		const currentToken = getToken();
+		if (!currentToken) {
 			setStatus("unauthenticated");
+			return;
 		}
-	}, [getToken]);
 
-	useEffect(() => {
+		if (token !== currentToken) {
+			setToken(currentToken);
+		}
+
 		if (loading) {
 			setStatus("loading");
 			return;
 		}
 
-		if (error || !data?.me?.user) {
+		if (error || !data?.me?.success) {
 			setStatus("unauthenticated");
 			setUser(null);
-		} else if (data.me.success && data.me.user) {
+		} else if (data?.me?.success && data?.me?.user) {
 			setStatus("authenticated");
 			setUser(data.me.user);
-		} else {
-			setStatus("unauthenticated");
-			setUser(null);
 		}
-	}, [data, loading, error]);
+	}, [token, loading, data, error, getToken]);
 
 	useEffect(() => {
 		let inactivityTimer: NodeJS.Timeout;
-
 		const resetInactivityTimer = () => {
 			clearTimeout(inactivityTimer);
 			inactivityTimer = setTimeout(logout, INACTIVITY_TIMEOUT);
 		};
-
 		if (status === "authenticated") {
 			const activityEvents = [
 				"mousemove",
@@ -83,7 +92,6 @@ export const useAuth = () => {
 			});
 			resetInactivityTimer();
 		}
-
 		return () => {
 			clearTimeout(inactivityTimer);
 			if (status === "authenticated") {
@@ -104,9 +112,17 @@ export const useAuth = () => {
 	const login = async (userName: string, password: string) => {
 		const response = await loginMutation({ variables: { userName, password } });
 		if (response.data.login.success) {
-			setCookie("token", response.data.login.token);
-			setToken(response.data.login.token);
-			await refetch();
+			const newToken = response.data.login.token;
+			const newUser = response.data.login.user;
+			
+			// Clear old cache first
+			await client.clearStore();
+			
+			// Set new auth state
+			setCookie("token", newToken);
+			setToken(newToken);
+			setUser(newUser);
+			setStatus("authenticated");
 		}
 		return response;
 	};
@@ -121,9 +137,17 @@ export const useAuth = () => {
 			variables: { firstName, lastName, userName, password },
 		});
 		if (response.data.signup.success) {
-			setCookie("token", response.data.signup.token);
-			setToken(response.data.signup.token);
-			await refetch();
+			const newToken = response.data.signup.token;
+			const newUser = response.data.signup.user;
+			
+			// Clear old cache first
+			await client.clearStore();
+			
+			// Set new auth state
+			setCookie("token", newToken);
+			setToken(newToken);
+			setUser(newUser);
+			setStatus("authenticated");
 		}
 		return response;
 	};

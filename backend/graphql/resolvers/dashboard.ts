@@ -19,7 +19,7 @@ export const dashboardResolvers = {
         const summary = await Expense.aggregate([
           {
             $match: {
-              $or: [{ paidBy: userId }, { "split.user": userId }],
+              $or: [{ paidBy: userId }, { "split.userId": userId }],
             },
           },
           { $unwind: "$split" },
@@ -31,7 +31,7 @@ export const dashboardResolvers = {
                   $cond: [
                     {
                       $and: [
-                        { $eq: ["$split.user", userId] },
+                        { $eq: ["$split.userId", userId] },
                         { $ne: ["$paidBy", userId] },
                         { $ne: ["$split.status", MemberExpenseStatus.PAID] },
                       ],
@@ -47,7 +47,7 @@ export const dashboardResolvers = {
                     {
                       $and: [
                         { $eq: ["$paidBy", userId] },
-                        { $ne: ["$split.user", userId] },
+                        { $ne: ["$split.userId", userId] },
                         { $ne: ["$split.status", MemberExpenseStatus.PAID] },
                       ],
                     },
@@ -62,7 +62,7 @@ export const dashboardResolvers = {
 
         const activeExpenses = await Expense.countDocuments({
           status: ExpenseStatus.AWAITING_PAYMENT,
-          $or: [{ paidBy: userId }, { "split.user": userId }],
+          $or: [{ paidBy: userId }, { "split.userId": userId }],
         });
 
         const result = {
@@ -100,7 +100,7 @@ export const dashboardResolvers = {
           status: ExpenseStatus.AWAITING_PAYMENT,
           $or: [
             {
-              "split.user": userId,
+              "split.userId": userId,
               "split.status": MemberExpenseStatus.PENDING,
             },
             {
@@ -109,14 +109,33 @@ export const dashboardResolvers = {
             },
           ],
         })
-          .populate("paidByUser")
-          .populate("split.user")
+          .populate("paidBy")
+          .populate("split.userId")
           .sort({ updatedAt: -1 });
+
+        // Map the results to include paidByUser for GraphQL
+        const mappedActionItems = actionItems.map((expense: any) => {
+          const expenseObj = expense.toObject();
+          return {
+            ...expenseObj,
+            paidByUser: expenseObj.paidBy && expenseObj.paidBy.firstName
+              ? {
+                  _id: expenseObj.paidBy._id,
+                  firstName: expenseObj.paidBy.firstName,
+                  lastName: expenseObj.paidBy.lastName || "User",
+                }
+              : {
+                  _id: "unknown",
+                  firstName: "Unknown",
+                  lastName: "User",
+                },
+          };
+        });
 
         return {
           success: true,
           message: "Action items fetched successfully.",
-          data: actionItems,
+          data: mappedActionItems,
         };
       } catch (error: any) {
         return {
@@ -143,16 +162,39 @@ export const dashboardResolvers = {
 
       try {
         const recentExpenses = await Expense.find({
-          $or: [{ paidBy: userId }, { "split.user": userId }],
+          $or: [{ paidBy: userId }, { "split.userId": userId }],
         })
-          .populate("paidByUser")
+          .populate({
+            path: "paidBy",
+            select: "firstName lastName",
+          })
           .sort({ updatedAt: -1 })
-          .limit(5);
+          .limit(5)
+          .lean();
+
+        const processedExpenses = recentExpenses.map((expense: any) => {
+          const payer = expense.paidBy;
+
+          return {
+            ...expense,
+            paidByUser: payer && payer.firstName
+              ? {
+                  _id: payer._id,
+                  firstName: payer.firstName,
+                  lastName: payer.lastName || "User",
+                }
+              : {
+                  _id: "unknown",
+                  firstName: "Unknown",
+                  lastName: "User",
+                },
+          };
+        });
 
         return {
           success: true,
           message: "Recent expenses fetched successfully.",
-          data: recentExpenses,
+          data: processedExpenses,
         };
       } catch (error: any) {
         return {

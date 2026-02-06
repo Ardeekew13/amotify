@@ -7,7 +7,7 @@ import { CheckIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { EditableAmountTable } from "./EditableAmountTable";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 
 interface IProps {
 	selectedUsers: MemberExpense[];
@@ -28,7 +28,7 @@ const MemberSelectTable = ({
 	expenseId,
 }: IProps) => {
 	const [isSplitEvenly, setIsSplitEvenly] = useState<boolean>(false);
-	const { user } = useAuth();
+	const { user } = useAuthContext();
 
 	const handleSplitEvenly = () => {
 		if (totalAmount <= 0) {
