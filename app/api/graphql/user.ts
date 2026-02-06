@@ -34,24 +34,21 @@ export const ME_QUERY = gql`
 `;
 
 //Mutations
-export const CREATE_USER = gql`
-	mutation CreateUser($input: CreateUserInput!) {
-		createUser(input: $input) {
-			success
-			message
-			user {
-				firstName
-				lastName
-				userName
+export const SIGNUP_MUTATION = gql`
+	mutation CreateUser(
+		$firstName: String!
+		$lastName: String!
+		$userName: String!
+		$password: String!
+	) {
+		createUser(
+			input: {
+				firstName: $firstName
+				lastName: $lastName
+				userName: $userName
+				password: $password
 			}
-			token
-		}
-	}
-`;
-
-export const LOGIN_USER = gql`
-	mutation Login($input: LoginInput!) {
-		login(input: $input) {
+		) {
 			success
 			message
 			user {
@@ -64,3 +61,20 @@ export const LOGIN_USER = gql`
 		}
 	}
 `;
+
+export const LOGIN_MUTATION = gql`
+	mutation Login($userName: String!, $password: String!) {
+		login(input: { userName: $userName, password: $password }) {
+			success
+			message
+			user {
+				_id
+				firstName
+				lastName
+				userName
+			}
+			token
+		}
+	}
+`;
+
