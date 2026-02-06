@@ -356,9 +356,10 @@ const Page = () => {
 			member?.user?._id !== user?._id &&
 			member?.status === MemberExpenseStatus.AWAITING_CONFIRMATION,
 	);
-	console.log("someoneAlreadyPaid", someoneAlreadyPaid);
+	
 	const isNewExpense = !expense?._id;
 	const isPaidByCurrentUser = expense?.paidBy === user?._id;
+	const isCompleted = expense?.status === ExpenseStatus.COMPLETED;
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between mb-6">
@@ -449,7 +450,7 @@ const Page = () => {
 						>
 							Cancel
 						</Button>
-						{(isNewExpense || isPaidByCurrentUser) && !someoneAlreadyPaid && (
+						{(isNewExpense || isPaidByCurrentUser) && !someoneAlreadyPaid && !isCompleted && (
 							<Button
 								type="submit"
 								className="hover:bg-green-800 text-white"
@@ -468,7 +469,7 @@ const Page = () => {
 							</Button>
 						)}
 
-						{expense?._id && !isPaidByCurrentUser && (
+						{expense?._id && !isPaidByCurrentUser && !isCompleted && (
 							<Button onClick={() => handleMarkAsPaid()}>
 								{isCurrentUserPaid ? "Mark as Unpaid" : "Mark as Paid"}
 							</Button>

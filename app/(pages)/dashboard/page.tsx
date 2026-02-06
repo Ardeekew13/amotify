@@ -9,11 +9,11 @@ import {
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { DashboardActionList } from "@/components/dashboard/DashboardActionList";
 import { DashboardRecentExpenses } from "@/components/dashboard/DashboardRecentExpenses";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
-	const { user } = useAuth();
+	const { user } = useAuthContext();
 
 	const {
 		data: summaryData,

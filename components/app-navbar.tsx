@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 import {
 	Avatar,
 	AvatarFallback,
@@ -42,7 +42,7 @@ const navItems = [
 export function AppNavbar() {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { user, logout } = useAuth();
+	const { user, logout } = useAuthContext();
 
 	const handleLogout = () => {
 		logout();

@@ -9,8 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useAuth } from "@/hooks/useAuth";
-import { setCookie } from "@/lib/cookies";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 
 // Zod validation schema
 const signupSchema = z
@@ -33,7 +32,7 @@ export function SignupForm({
 	...props
 }: React.ComponentPropsWithoutRef<"form">) {
 	const router = useRouter();
-	const { signup, isLoading } = useAuth();
+	const { signup, isLoading } = useAuthContext();
 
 	// react-hook-form with zod validation
 	const {
@@ -57,11 +56,6 @@ export function SignupForm({
 				toast.success("Success!", {
 					description: "Account created successfully!",
 				});
-
-				// Store token in cookie for middleware
-				if (result.data.signup.token) {
-					setCookie("auth_token", result.data.signup.token, 7);
-				}
 
 				// Redirect to dashboard
 				router.push("/dashboard");

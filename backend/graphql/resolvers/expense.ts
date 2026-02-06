@@ -141,6 +141,19 @@ export const expenseResolvers = {
 		receiptPublicId: (parent: any) => {
 			return normalizeReceiptUrls(parent.receiptPublicId);
 		},
+
+		// Format dates as ISO strings
+		createdAt: (parent: any) => {
+			if (!parent.createdAt) return null;
+			const date = new Date(parent.createdAt);
+			return date.toISOString();
+		},
+
+		updatedAt: (parent: any) => {
+			if (!parent.updatedAt) return null;
+			const date = new Date(parent.updatedAt);
+			return date.toISOString();
+		},
 	},
 
 	SplitMember: {
