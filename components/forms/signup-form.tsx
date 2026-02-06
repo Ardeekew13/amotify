@@ -53,21 +53,21 @@ export function SignupForm({
 				formData.password
 			);
 
-			if (result?.success) {
+			if (result?.data?.signup?.success) {
 				toast.success("Success!", {
 					description: "Account created successfully!",
 				});
 
 				// Store token in cookie for middleware
-				if (result.token) {
-					setCookie("auth_token", result.token, 7);
+				if (result.data.signup.token) {
+					setCookie("auth_token", result.data.signup.token, 7);
 				}
 
 				// Redirect to dashboard
 				router.push("/dashboard");
 			} else {
 				toast.error("Error", {
-					description: result?.message || "Failed to create account",
+					description: result?.data?.signup?.message || "Failed to create account",
 				});
 			}
 		} catch (err: any) {

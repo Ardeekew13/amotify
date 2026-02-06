@@ -40,21 +40,21 @@ export function LoginForm({
 		try {
 			const result = await login(data.userName, data.password);
 
-			if (result?.success) {
+			if (result?.data?.login?.success) {
 				toast.success("Login Successful", {
 					description: "You have been logged in successfully.",
 				});
 				
 				// Store token in cookie for middleware
-				if (result.token) {
-					setCookie("auth_token", result.token, 7);
+				if (result.data.login.token) {
+					setCookie("auth_token", result.data.login.token, 7);
 				}
 				
 				// Redirect to original destination or dashboard
 				router.push(callbackUrl || "/dashboard");
 			} else {
 				toast.error("Login Failed", {
-					description: result?.message || "Invalid credentials",
+					description: result?.data?.login?.message || "Invalid credentials",
 				});
 			}
 		} catch (err: any) {
