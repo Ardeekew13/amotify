@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuthContext } from "@/components/auth/AuthProvider";
+import { Loader2 } from "lucide-react";
 
 // Zod validation schema
 const signupSchema = z
@@ -38,10 +39,12 @@ export function SignupForm({
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isSubmitting },
 	} = useForm<SignupFormData>({
 		resolver: zodResolver(signupSchema),
 	});
+
+	const isDisabled = isLoading || isSubmitting;
 
 	const onSubmit = async (formData: SignupFormData) => {
 		try {
@@ -49,10 +52,10 @@ export function SignupForm({
 				formData.firstName,
 				formData.lastName,
 				formData.userName,
-				formData.password
+				formData.password,
 			);
 
-			if (result?.data?.signup?.success) {
+			if (result?.data?.createUser?.success) {
 				toast.success("Success!", {
 					description: "Account created successfully!",
 				});
@@ -61,7 +64,8 @@ export function SignupForm({
 				router.push("/dashboard");
 			} else {
 				toast.error("Error", {
-					description: result?.data?.signup?.message || "Failed to create account",
+					description:
+						result?.data?.createUser?.message || "Failed to create account",
 				});
 			}
 		} catch (err: any) {
@@ -91,7 +95,7 @@ export function SignupForm({
 						<Input
 							id="firstName"
 							placeholder="Enter First Name"
-							disabled={isLoading}
+							disabled={isDisabled}
 							{...register("firstName")}
 						/>
 						{errors.firstName && (
@@ -105,7 +109,7 @@ export function SignupForm({
 						<Input
 							id="lastName"
 							placeholder="Enter Last Name"
-							disabled={isLoading}
+							disabled={isDisabled}
 							{...register("lastName")}
 						/>
 						{errors.lastName && (
@@ -121,7 +125,7 @@ export function SignupForm({
 						id="userName"
 						type="text"
 						placeholder="Enter Username"
-						disabled={isLoading}
+						disabled={isDisabled}
 						{...register("userName")}
 					/>
 					{errors.userName && (
@@ -136,7 +140,7 @@ export function SignupForm({
 						id="password"
 						type="password"
 						placeholder="Enter Password"
-						disabled={isLoading}
+						disabled={isDisabled}
 						{...register("password")}
 					/>
 					{errors.password && (
@@ -151,7 +155,7 @@ export function SignupForm({
 						id="confirmPassword"
 						type="password"
 						placeholder="Enter Confirm Password"
-						disabled={isLoading}
+						disabled={isDisabled}
 						{...register("confirmPassword")}
 					/>
 					{errors.confirmPassword && (
@@ -160,8 +164,9 @@ export function SignupForm({
 						</span>
 					)}
 				</div>
-				<Button type="submit" className="w-full" disabled={isLoading}>
-					{isLoading ? "Creating account..." : "Create account"}
+				<Button type="submit" className="w-full" disabled={isDisabled}>
+					{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+					{isSubmitting ? "Creating account..." : "Create account"}
 				</Button>
 			</div>
 			<div className="text-center text-sm">

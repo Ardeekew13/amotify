@@ -107,3 +107,17 @@ export type GetDashboardRecentExpenses = {
 	};
 };
 
+// Unified Dashboard Types
+export type DashboardData = {
+	summary: DashboardSummary;
+	actionItems: Expense[];
+	recentExpenses: Expense[];
+};
+
+export type GetDashboard = {
+	getDashboard: {
+		success: boolean;
+		message: string;
+		data: DashboardData | null;
+	};
+};

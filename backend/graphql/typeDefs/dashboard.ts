@@ -5,7 +5,20 @@ export const dashboardTypeDefs = `#graphql
     activeExpenses: Int!
   }
 
+  type DashboardData {
+    summary: DashboardSummary!
+    actionItems: [Expense!]!
+    recentExpenses: [Expense!]!
+  }
+
+  type GetDashboardResponse {
+    success: Boolean!
+    message: String!
+    data: DashboardData
+  }
+
   type Query {
+    getDashboard: GetDashboardResponse!
     getDashboardSummary: GetDashboardSummaryResponse
     getDashboardActionItems: GetDashboardActionItemsResponse
     getDashboardRecentExpenses: GetDashboardRecentExpensesResponse
