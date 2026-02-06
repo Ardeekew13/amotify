@@ -1,28 +1,48 @@
 "use client";
 
-import { useQuery, useApolloClient } from "@apollo/client";
+import { useQuery, useMutation, useApolloClient } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import { ME_QUERY } from "@/app/api/graphql/user";
-import { deleteCookie } from "@/lib/cookies";
+import { ME_QUERY, LOGIN_MUTATION, SIGNUP_MUTATION } from "@/app/api/graphql/user";
+import { setCookie, getCookie, deleteCookie } from "@/lib/cookies";
 import { User } from "@/interface/userInterface";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 export const useAuth = () => {
-	const { data, loading, error } = useQuery(ME_QUERY);
+	const [token, setToken] = useState<string | null>(null);
+	const { data, loading, error, refetch } = useQuery(ME_QUERY, {
+		skip: !token,
+	});
 	const client = useApolloClient();
 	const router = useRouter();
 	const [status, setStatus] = useState<AuthStatus>("loading");
 	const [user, setUser] = useState<User | null>(null);
 
+	const [loginMutation] = useMutation(LOGIN_MUTATION);
+	const [signupMutation] = useMutation(SIGNUP_MUTATION);
+
 	const logout = useCallback(async () => {
 		deleteCookie("token");
+		setToken(null);
 		await client.resetStore();
 		router.replace("/login");
 	}, [client, router]);
+
+	const getToken = useCallback(() => {
+		return getCookie("token");
+	}, []);
+
+	useEffect(() => {
+		const storedToken = getToken();
+		if (storedToken) {
+			setToken(storedToken);
+		} else {
+			setStatus("unauthenticated");
+		}
+	}, [getToken]);
 
 	useEffect(() => {
 		if (loading) {
@@ -61,7 +81,7 @@ export const useAuth = () => {
 			activityEvents.forEach((event) => {
 				window.addEventListener(event, resetInactivityTimer);
 			});
-			resetInactivityTimer(); // Initial timer start
+			resetInactivityTimer();
 		}
 
 		return () => {
@@ -81,5 +101,42 @@ export const useAuth = () => {
 		};
 	}, [status, logout]);
 
-	return { status, user, logout };
+	const login = async (userName: string, password: string) => {
+		const response = await loginMutation({ variables: { userName, password } });
+		if (response.data.login.success) {
+			setCookie("token", response.data.login.token);
+			setToken(response.data.login.token);
+			await refetch();
+		}
+		return response;
+	};
+
+	const signup = async (
+		firstName: string,
+		lastName: string,
+		userName: string,
+		password: string,
+	) => {
+		const response = await signupMutation({
+			variables: { firstName, lastName, userName, password },
+		});
+		if (response.data.signup.success) {
+			setCookie("token", response.data.signup.token);
+			setToken(response.data.signup.token);
+			await refetch();
+		}
+		return response;
+	};
+
+	return {
+		status,
+		user,
+		logout,
+		token,
+		isAuthenticated: status === "authenticated",
+		isLoading: status === "loading",
+		login,
+		signup,
+		getToken,
+	};
 };
