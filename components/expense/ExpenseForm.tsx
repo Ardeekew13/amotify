@@ -134,7 +134,9 @@ const Page = () => {
 
 		setIsUploading(true);
 
-		let receiptUrls: string[] = existingReceiptUrl ? [...existingReceiptUrl] : [];
+		let receiptUrls: string[] = existingReceiptUrl
+			? [...existingReceiptUrl]
+			: [];
 		let receiptPublicIds: string[] = existingReceiptPublicId
 			? [...existingReceiptPublicId]
 			: [];
@@ -366,11 +368,13 @@ const Page = () => {
 					</h1>
 					<p className="text-muted-foreground">
 						Manage and track your shared expenses{" "}
-						<Badge>
-							{expense?.status === ExpenseStatus.AWAITING_PAYMENT
-								? "Awaiting Payment"
-								: "Paid"}
-						</Badge>
+						{expense && (
+							<Badge>
+								{expense?.status === ExpenseStatus.COMPLETED
+									? "Paid"
+									: "Awaiting Payment"}
+							</Badge>
+						)}
 					</p>
 				</div>
 			</div>
