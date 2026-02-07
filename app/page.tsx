@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/AuthProvider";
 import { Spinner } from "@/components/ui/spinner";
+import Loading from "@/components/common/Loading";
 
 export default function HomePage() {
 	const { status } = useAuthContext();
@@ -19,7 +20,7 @@ export default function HomePage() {
 
 	return (
 		<div className="flex h-screen items-center justify-center">
-			<Spinner />
+			<Loading />
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Expense } from "@/interface/common/common";
+import { Expense, ExpenseStatus } from "@/interface/common/common";
 import {
   Card,
   CardContent,
@@ -69,10 +69,10 @@ export const DashboardRecentExpenses = ({
                   <TableCell>
                     <Badge 
                       variant={
-                        expense.status === "COMPLETED" ? "default" : "secondary"
+                        expense.status === "COMPLETED" ? "success" : "info"
                       }
                     >
-                      {expense.status.replace("_", " ")}
+                      {expense?.status === ExpenseStatus.AWAITING_PAYMENT ?  "Awaiting Payment" : "Completed"}
                     </Badge>
                   </TableCell>
                 </TableRow>

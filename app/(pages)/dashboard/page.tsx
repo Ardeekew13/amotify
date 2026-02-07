@@ -7,6 +7,7 @@ import { DashboardActionList } from "@/components/dashboard/DashboardActionList"
 import { DashboardRecentExpenses } from "@/components/dashboard/DashboardRecentExpenses";
 import { useAuthContext } from "@/components/auth/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
+import Loading from "@/components/common/Loading";
 
 export default function DashboardPage() {
 	const { user } = useAuthContext();
@@ -20,27 +21,7 @@ export default function DashboardPage() {
 	const isLoading = loading || !user;
 
 	if (isLoading) {
-		return (
-			<div className="space-y-6">
-				<div>
-					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-4 w-96 mt-2" />
-				</div>
-				<div className="grid gap-4 md:grid-cols-3">
-					<Skeleton className="h-24" />
-					<Skeleton className="h-24" />
-					<Skeleton className="h-24" />
-				</div>
-				<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-					<div className="lg:col-span-2">
-						<Skeleton className="h-64" />
-					</div>
-					<div className="lg:col-span-3">
-						<Skeleton className="h-64" />
-					</div>
-				</div>
-			</div>
-		);
+		<Loading />;
 	}
 
 	if (error) {
@@ -63,7 +44,7 @@ export default function DashboardPage() {
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
 				<p className="text-muted-foreground">
-					Welcome back, {user.firstName}! Here&apos;s what&apos;s happening.
+					Welcome back, {user?.firstName}! Here&apos;s what&apos;s happening.
 				</p>
 			</div>
 
@@ -73,7 +54,7 @@ export default function DashboardPage() {
 				<div className="lg:col-span-2">
 					<DashboardActionList
 						actionItems={actionItems}
-						currentUserId={user._id}
+						currentUserId={user?._id ?? ""}
 					/>
 				</div>
 				<div className="lg:col-span-3">

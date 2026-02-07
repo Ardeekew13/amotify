@@ -102,7 +102,7 @@ export const DashboardActionList = ({
                       {actionInfo.status.replace("_", " ")}
                     </Badge>
                     <Link href={`/expense/manage/${item._id}`}>
-                      <Button size="sm">{actionInfo.action}</Button>
+                      <Button size="xs">{actionInfo.action}</Button>
                     </Link>
                   </div>
                 </div>

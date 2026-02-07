@@ -1,4 +1,4 @@
-import ExpenseForm from "@/components/expense/ExpenseForm";
+import ExpenseForm from "@/components/expense/ExpenseFormNew";
 
 export default function EditExpensePage() {
 	return <ExpenseForm />;

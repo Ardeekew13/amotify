@@ -1,5 +1,6 @@
 "use client";
 import { GET_EXPENSES } from "@/app/api/graphql/expense";
+import Loading from "@/components/common/Loading";
 import ExpenseTable from "@/components/expense/ExpenseTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +9,6 @@ import { useQuery } from "@apollo/client/react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { useAuthContext } from "@/components/auth/AuthProvider";
 
 export default function ExpensePage() {
 	const router = useRouter();
@@ -17,6 +17,7 @@ export default function ExpensePage() {
 
 	const { data, loading, refetch } = useQuery<GetExpenses>(GET_EXPENSES, {
 		variables: { filter: activeTab === "my" ? "my" : null },
+		fetchPolicy: "no-cache",
 	});
 
 	const handleAdd = useCallback(
@@ -45,15 +46,9 @@ export default function ExpensePage() {
 	}, [data, loading, handleAdd]);
 
 	if (isNavigating) {
-		return (
-			<div className="flex items-center justify-center min-h-[60vh]">
-				<div className="flex flex-col items-center gap-4">
-					<Loader2 className="h-12 w-12 animate-spin text-primary" />
-					<p className="text-muted-foreground">Loading...</p>
-				</div>
-			</div>
-		);
+		<Loading />;
 	}
+	console.log("isNavigating", isNavigating);
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between mb-6">

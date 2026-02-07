@@ -168,10 +168,11 @@ const MemberSelectTable = ({
 
 	const handleAmountChange = (userId: string, amount: number) => {
 		const paidPercentage = (amount / totalAmount) * 100;
+		const decimalPercentage = paidPercentage.toFixed(2);
 		setSelectedUsers((prev) =>
 			prev.map((row) =>
 				row._id === userId
-					? { ...row, splitPercentage: paidPercentage, amount }
+					? { ...row, splitPercentage: parseFloat(decimalPercentage), amount }
 					: row,
 			),
 		);

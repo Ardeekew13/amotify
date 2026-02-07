@@ -15,7 +15,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Expense } from "@/interface/common/common";
+import { Expense, ExpenseStatus } from "@/interface/common/common";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import dayjs from "dayjs";
@@ -77,6 +77,29 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 				);
 			},
 			size: 150,
+		},
+		{
+			id: "status",
+			header: () => <div className="text-center">Status</div>,
+			cell: ({ row }) => {
+				const status = row?.original?.status;
+				const statusText =
+					status === ExpenseStatus.AWAITING_PAYMENT
+						? "Awaiting Payment"
+						: "Completed";
+				return (
+					<span
+						className={`flex px-4 text-center rounded-full text-xs font-medium ${
+							status === ExpenseStatus.AWAITING_PAYMENT
+								? "bg-blue-500 text-white py-1"
+								: "bg-green-500 text-white py-2"
+						}`}
+					>
+						{statusText}
+					</span>
+				);
+			},
+			size: 130,
 		},
 		{
 			id: "actions",

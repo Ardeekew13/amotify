@@ -16,6 +16,7 @@ interface ReceiptUploadProps {
 	multiple?: boolean;
 	maxFiles?: number;
 	someoneAlreadyPaid: boolean; // Optional prop to indicate if someone has already paid
+	isOwner: boolean; //Prop to know if the user can add or delete the attachments
 }
 
 export function ReceiptUpload({
@@ -25,6 +26,7 @@ export function ReceiptUpload({
 	multiple = false,
 	maxFiles = 5,
 	someoneAlreadyPaid,
+	isOwner,
 }: ReceiptUploadProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,7 +181,7 @@ export function ReceiptUpload({
 									className="object-cover cursor-pointer hover:opacity-75 transition-opacity"
 									onClick={() => handleReplace(url)}
 								/>
-								{!someoneAlreadyPaid && (
+								{!someoneAlreadyPaid && isOwner && (
 									<Button
 										type="button"
 										variant="destructive"
@@ -200,7 +202,7 @@ export function ReceiptUpload({
 			)}
 
 			{/* Upload Button */}
-			{canAddMore && (
+			{canAddMore && isOwner && (
 				<Button
 					type="button"
 					variant="outline"

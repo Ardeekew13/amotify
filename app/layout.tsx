@@ -8,7 +8,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Amotify - Next.js + GraphQL + MongoDB",
+  title: "Amotify",
   description: "A modern full-stack template with shadcn/ui, GraphQL, and MongoDB",
   icons: {
     icon: 'data:,',

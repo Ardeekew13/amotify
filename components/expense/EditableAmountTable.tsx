@@ -211,7 +211,7 @@ export function EditableAmountTable({
 						0,
 					);
 
-				return <div className="text-right font-bold">{total.toFixed(1)}%</div>;
+				return <div className="text-right font-bold">{total.toFixed(2)}%</div>;
 			},
 		},
 		{

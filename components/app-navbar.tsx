@@ -50,7 +50,7 @@ export function AppNavbar() {
 	};
 
 	return (
-		<header className="sticky top-0 z-50 flex h-16 items-center justify-between w-full gap-4 border-b bg-background px-6">
+		<header className="sticky top-0 z-50 flex h-16 items-center justify-between w-full gap-4 bg-background px-6">
 			<div className="flex items-center gap-6">
 				<h1
 					className="cursor-pointer text-lg font-semibold"

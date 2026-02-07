@@ -39,7 +39,6 @@ export function LoginForm({
 	const isDisabled = isLoading || isSubmitting;
 
 	const onSubmit = async (data: SigninFormData) => {
-
 		try {
 			const result = await login(data.userName, data.password);
 
@@ -47,7 +46,7 @@ export function LoginForm({
 				toast.success("Login Successful", {
 					description: "You have been logged in successfully.",
 				});
-				
+
 				// Redirect to original destination or dashboard
 				router.push(callbackUrl || "/dashboard");
 			} else {
