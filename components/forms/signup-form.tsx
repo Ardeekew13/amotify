@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 // Zod validation schema
 const signupSchema = z
@@ -165,7 +165,7 @@ export function SignupForm({
 					)}
 				</div>
 				<Button type="submit" className="w-full" disabled={isDisabled}>
-					{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+					{isSubmitting && <Spinner className="mr-2 h-4 w-4" />}
 					{isSubmitting ? "Creating account..." : "Create account"}
 				</Button>
 			</div>

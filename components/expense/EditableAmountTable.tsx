@@ -15,6 +15,7 @@ import {
 	MARK_AS_PAID,
 } from "@/app/api/graphql/expense";
 import { toast } from "sonner";
+import { formatPercentage, formatCurrency } from "@/lib/helper";
 
 interface EditableAmountTableProps {
 	data: MemberExpense[];
@@ -41,88 +42,36 @@ const getStatusBadgeVariant = (
 	}
 };
 
-// Separate component for editable split percentage cell
-function EditableSplitCell({
-	row,
-	onSplitPercentageChange,
-}: {
-	row: any;
-	onSplitPercentageChange: (userId: string, split: number) => void;
-}) {
-	// Show empty string for 0 values so users can type fresh
-	const formatValue = (val: number | undefined) => {
-		if (val === undefined || val === 0) return "";
-		return String(val);
-	};
-
-	const [localValue, setLocalValue] = useState(
-		formatValue(row.original.splitPercentage),
-	);
-
-	useEffect(() => {
-		setLocalValue(formatValue(row.original.splitPercentage));
-	}, [row.original.splitPercentage]);
-
-	const handleBlur = () => {
-		const numValue = parseFloat(localValue) || 0;
-		if (numValue !== row.original.splitPercentage) {
-			onSplitPercentageChange(row.original._id, numValue);
-		}
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") {
-			e.currentTarget.blur();
-		}
-	};
-
-	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-		// Select all text on focus for easy replacement
-		e.target.select();
-	};
-
-	return (
-		<div className="flex justify-end">
-			<Input
-				type="number"
-				value={localValue}
-				placeholder="0"
-				className="w-32 text-right"
-				onChange={(e) => setLocalValue(e.target.value)}
-				onBlur={handleBlur}
-				onKeyDown={handleKeyDown}
-				onFocus={handleFocus}
-			/>
-		</div>
-	);
+// Reusable editable number input component
+interface EditableNumberInputProps {
+	value: number;
+	userId: string;
+	onChange: (userId: string, value: number) => void;
+	placeholder?: string;
+	className?: string;
 }
 
-// Separate component for editable amount cell
-function EditableAmountCell({
-	row,
-	onAmountChange,
-}: {
-	row: any;
-	onAmountChange: (userId: string, amount: number) => void;
-}) {
+function EditableNumberInput({ 
+	value, 
+	userId, 
+	onChange, 
+	placeholder = "0", 
+	className = "w-32 text-right" 
+}: EditableNumberInputProps) {
 	// Show empty string for 0 values so users can type fresh
-	const formatValue = (val: number | undefined) => {
-		if (val === undefined || val === 0) return "";
-		return String(val);
-	};
+	const formatValue = (val: number) => val === 0 ? "" : String(val);
+	
+	const [localValue, setLocalValue] = useState(formatValue(value));
 
-	const [localValue, setLocalValue] = useState(
-		formatValue(row.original.amount),
-	);
-
+	// Update local value when prop changes
 	useEffect(() => {
-		setLocalValue(formatValue(row.original.amount));
-	}, [row.original.amount]);
+		setLocalValue(formatValue(value));
+	}, [value]);
 
-	const handleBlur = () => {
+	const handleSubmit = () => {
 		const numValue = parseFloat(localValue) || 0;
-		if (numValue !== row.original.amount) {
-			onAmountChange(row.original._id, numValue);
+		if (numValue !== value) {
+			onChange(userId, numValue);
 		}
 	};
 
@@ -142,10 +91,10 @@ function EditableAmountCell({
 			<Input
 				type="number"
 				value={localValue}
-				placeholder="0"
-				className="w-32 text-right"
+				placeholder={placeholder}
+				className={className}
 				onChange={(e) => setLocalValue(e.target.value)}
-				onBlur={handleBlur}
+				onBlur={handleSubmit}
 				onKeyDown={handleKeyDown}
 				onFocus={handleFocus}
 			/>
@@ -195,14 +144,13 @@ export function EditableAmountTable({
 		{
 			id: "splitPercentage",
 			header: () => <div className="text-right">Split (%)</div>,
-
 			cell: ({ row }) => (
-				<EditableSplitCell
-					row={row}
-					onSplitPercentageChange={onSplitPercentageChange}
+				<EditableNumberInput
+					value={row.original.splitPercentage || 0}
+					userId={row.original.user._id}
+					onChange={onSplitPercentageChange}
 				/>
 			),
-
 			footer: ({ table }) => {
 				const total = table
 					.getRowModel()
@@ -211,14 +159,18 @@ export function EditableAmountTable({
 						0,
 					);
 
-				return <div className="text-right font-bold">{total.toFixed(2)}%</div>;
+				return <div className="text-right font-bold">{formatPercentage(total)}</div>;
 			},
 		},
 		{
 			id: "amount",
 			header: () => <div className="text-right">Amount</div>,
 			cell: ({ row }) => (
-				<EditableAmountCell row={row} onAmountChange={onAmountChange} />
+				<EditableNumberInput
+					value={row.original.amount || 0}
+					userId={row.original.user._id}
+					onChange={onAmountChange}
+				/>
 			),
 			size: 80,
 			footer: ({ table }) => {
@@ -226,7 +178,7 @@ export function EditableAmountTable({
 					.getRowModel()
 					.rows.reduce((sum, row) => sum + (row.original.amount || 0), 0);
 
-				return <div className="text-right font-bold">₱{total.toFixed(2)}</div>;
+				return <div className="text-right font-bold">{formatCurrency(total)}</div>;
 			},
 		},
 		{
@@ -297,6 +249,10 @@ export function EditableAmountTable({
 			},
 			size: 100,
 		});
+	}
+
+	if (loading) {
+		return <div className="flex items-center justify-center py-8">Processing payment...</div>;
 	}
 
 	return <DataTable columns={columns} data={data} />;

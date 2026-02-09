@@ -7,7 +7,8 @@ import { CheckIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { EditableAmountTable } from "./EditableAmountTable";
 import { toast } from "sonner";
-import { useAuthContext } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
+import { roundToTwoDecimals, distributePercentages } from "@/lib/helper";
 
 interface IProps {
 	selectedUsers: MemberExpense[];
@@ -28,7 +29,7 @@ const MemberSelectTable = ({
 	expenseId,
 }: IProps) => {
 	const [isSplitEvenly, setIsSplitEvenly] = useState<boolean>(false);
-	const { user } = useAuthContext();
+	const { user } = useAuth();
 
 	const handleSplitEvenly = () => {
 		if (totalAmount <= 0) {
@@ -59,10 +60,8 @@ const MemberSelectTable = ({
 
 				if (membersToSplit.length > 0 && remainingAmount > 0) {
 					const splitAmount = remainingAmount / membersToSplit.length;
-					const splitPercentage =
-						((remainingAmount / totalAmount) * 100) / membersToSplit.length;
 
-					// Round down amounts for all members
+					// Create updated members with split amounts
 					let updatedMembers = selectedUsers.map((member) => {
 						if (
 							(member.amount ?? 0) === 0 &&
@@ -70,73 +69,45 @@ const MemberSelectTable = ({
 						) {
 							return {
 								...member,
-								amount: Math.floor(splitAmount * 100) / 100,
-								splitPercentage: Math.floor(splitPercentage * 100) / 100,
+								amount: roundToTwoDecimals(splitAmount),
+								splitPercentage: 0, // Will be calculated below
 							};
 						}
 						return member;
 					});
 
-					// Calculate rounding difference and add to last split member
-					const calculatedTotal = updatedMembers.reduce(
-						(sum, m) => sum + m.amount,
-						0,
-					);
-					const difference =
-						Math.round((totalAmount - calculatedTotal) * 100) / 100;
-
-					if (difference !== 0) {
-						const lastSplitIndex = updatedMembers.findIndex(
-							(m) =>
-								m.amount > 0 &&
-								(m.splitPercentage ?? 0) > 0 &&
-								membersToSplit.some((split) => split._id === m._id),
-						);
-
-						if (lastSplitIndex !== -1) {
-							const newAmount =
-								updatedMembers[lastSplitIndex].amount + difference;
-							updatedMembers[lastSplitIndex] = {
-								...updatedMembers[lastSplitIndex],
-								amount: Math.round(newAmount * 100) / 100,
-								splitPercentage:
-									Math.round((newAmount / totalAmount) * 100 * 100) / 100,
-							};
-						}
-					}
+					// Calculate proper percentages that add up to 100%
+					const allAmounts = updatedMembers.map(m => m.amount);
+					const properPercentages = distributePercentages(allAmounts, totalAmount);
+					
+					// Apply the calculated percentages
+					updatedMembers = updatedMembers.map((member, index) => ({
+						...member,
+						splitPercentage: properPercentages[index]
+					}));
 
 					setSelectedUsers(updatedMembers);
 				}
 			} else {
 				// Scenario: No members have amounts set - split evenly among all
 				const splitAmount = totalAmount / selectedUsers.length;
-				const splitPercentage = 100 / selectedUsers.length;
 
-				// Round down for all members
+				// Create updated members with split amounts
 				let updatedMembers = selectedUsers.map((member) => ({
 					...member,
-					amount: Math.floor(splitAmount * 100) / 100,
-					splitPercentage: Math.floor(splitPercentage * 100) / 100,
+					amount: roundToTwoDecimals(splitAmount),
+					splitPercentage: 0, // Will be calculated below
 				}));
 
-				// Add rounding difference to last member
-				const calculatedTotal = updatedMembers.reduce(
-					(sum, m) => sum + m.amount,
-					0,
-				);
-				const difference =
-					Math.round((totalAmount - calculatedTotal) * 100) / 100;
-
-				if (difference !== 0) {
-					const lastIndex = updatedMembers.length - 1;
-					const newAmount = updatedMembers[lastIndex].amount + difference;
-					updatedMembers[lastIndex] = {
-						...updatedMembers[lastIndex],
-						amount: Math.round(newAmount * 100) / 100,
-						splitPercentage:
-							Math.round((newAmount / totalAmount) * 100 * 100) / 100,
-					};
-				}
+				// Calculate proper percentages that add up to 100%
+				const allAmounts = updatedMembers.map(m => m.amount);
+				const properPercentages = distributePercentages(allAmounts, totalAmount);
+				
+				// Apply the calculated percentages
+				updatedMembers = updatedMembers.map((member, index) => ({
+					...member,
+					splitPercentage: properPercentages[index]
+				}));
 
 				setSelectedUsers(updatedMembers);
 			}
@@ -159,7 +130,7 @@ const MemberSelectTable = ({
 		const amountOfThePercentage = (splitPercentage / 100) * totalAmount;
 		setSelectedUsers((prev) =>
 			prev.map((row) =>
-				row._id === userId
+				row.user._id === userId
 					? { ...row, amount: amountOfThePercentage, splitPercentage }
 					: row,
 			),
@@ -167,12 +138,11 @@ const MemberSelectTable = ({
 	};
 
 	const handleAmountChange = (userId: string, amount: number) => {
-		const paidPercentage = (amount / totalAmount) * 100;
-		const decimalPercentage = paidPercentage.toFixed(2);
+		const paidPercentage = roundToTwoDecimals((amount / totalAmount) * 100);
 		setSelectedUsers((prev) =>
 			prev.map((row) =>
-				row._id === userId
-					? { ...row, splitPercentage: parseFloat(decimalPercentage), amount }
+				row.user._id === userId
+					? { ...row, splitPercentage: paidPercentage, amount }
 					: row,
 			),
 		);

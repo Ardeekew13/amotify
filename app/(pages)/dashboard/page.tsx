@@ -21,7 +21,7 @@ export default function DashboardPage() {
 	const isLoading = loading || !user;
 
 	if (isLoading) {
-		<Loading />;
+		return <Loading />;
 	}
 
 	if (error) {

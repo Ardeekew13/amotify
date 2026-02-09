@@ -88,18 +88,20 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 						? "Awaiting Payment"
 						: "Completed";
 				return (
-					<span
-						className={`flex px-4 text-center rounded-full text-xs font-medium ${
-							status === ExpenseStatus.AWAITING_PAYMENT
-								? "bg-blue-500 text-white py-1"
-								: "bg-green-500 text-white py-2"
-						}`}
-					>
-						{statusText}
-					</span>
+					<div className="flex justify-center">
+						<span
+							className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+								status === ExpenseStatus.AWAITING_PAYMENT
+									? "bg-blue-500 text-white"
+									: "bg-green-500 text-white"
+							}`}
+						>
+							{statusText}
+						</span>
+					</div>
 				);
 			},
-			size: 130,
+			size: 180,
 		},
 		{
 			id: "actions",

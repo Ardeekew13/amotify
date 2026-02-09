@@ -1,12 +1,21 @@
-import { Loader2 } from "lucide-react";
-import React from "react";
+import React from 'react';
+import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 
-const Loading = () => {
+interface LoadingProps {
+	text?: string;
+	className?: string;
+}
+
+const Loading = ({ 
+	text = "Loading...",
+	className 
+}: LoadingProps) => {
 	return (
-		<div className="flex items-center justify-center min-h-[60vh]">
+		<div className={cn("flex items-center justify-center min-h-[60vh]", className)}>
 			<div className="flex flex-col items-center gap-4">
-				<Loader2 className="h-12 w-12 animate-spin text-primary" />
-				<p className="text-muted-foreground">Loading...</p>
+				<Spinner className="size-12" />
+				<p className="text-muted-foreground">{text}</p>
 			</div>
 		</div>
 	);

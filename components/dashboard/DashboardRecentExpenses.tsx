@@ -53,7 +53,7 @@ export const DashboardRecentExpenses = ({
                 <TableRow key={expense._id}>
                   <TableCell>
                     <Link
-                      href={`/expense/${expense._id}`}
+                      href={`/expense/manage/${expense._id}`}
                       className="font-medium hover:underline"
                     >
                       {expense.title}

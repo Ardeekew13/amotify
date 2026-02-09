@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GetExpenses } from "@/interface/common/common";
 import { useQuery } from "@apollo/client/react";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
@@ -46,7 +45,7 @@ export default function ExpensePage() {
 	}, [data, loading, handleAdd]);
 
 	if (isNavigating) {
-		<Loading />;
+		return <Loading />;
 	}
 	console.log("isNavigating", isNavigating);
 	return (
