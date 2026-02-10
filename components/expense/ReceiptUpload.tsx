@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button, Typography, App } from "antd";
 import { normalizeReceiptUrls } from "@/lib/receiptUtils";
 import { cn } from "@/lib/utils";
 import { Plus, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+
+const { Text } = Typography;
 
 interface ReceiptUploadProps {
 	value: File[];
@@ -29,6 +29,7 @@ export function ReceiptUpload({
 	isOwner,
 }: ReceiptUploadProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const { message } = App.useApp();
 
 	// Normalize existing URL to array with backward compatibility
 	const [existingReceipts, setExistingReceipts] = useState<string[]>(
@@ -54,11 +55,11 @@ export function ReceiptUpload({
 
 		const newFiles = Array.from(files).filter((file) => {
 			if (!file.type.startsWith("image/")) {
-				toast.error(`${file.name} is not an image file`);
+				message.error(`${file.name} is not an image file`);
 				return false;
 			}
 			if (file.size > 5 * 1024 * 1024) {
-				toast.error(`${file.name} is larger than 5MB`);
+				message.error(`${file.name} is larger than 5MB`);
 				return false;
 			}
 			return true;
@@ -94,7 +95,7 @@ export function ReceiptUpload({
 			const limited = combined.slice(0, remaining);
 			onChange(limited);
 			if (combined.length > remaining) {
-				toast.warning(
+				message.warning(
 					`Only ${maxFiles} files allowed. Extra files were ignored.`,
 				);
 			}
@@ -144,22 +145,22 @@ export function ReceiptUpload({
 	const canAddMore = multiple ? totalReceipts < maxFiles : totalReceipts === 0;
 
 	return (
-		<div className="space-y-4">
-			<Input
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+			<input
 				ref={fileInputRef}
 				type="file"
 				accept="image/jpeg,image/jpg,image/png"
 				multiple={multiple}
 				onChange={handleFileChange}
-				className="hidden"
+				style={{ display: 'none' }}
 			/>
 
 			{/* Receipts Grid */}
 			{existingReceipts.length > 0 && (
-				<div className="space-y-2">
-					<p className="text-sm font-medium text-muted-foreground">
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+					<Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>
 						Receipt{existingReceipts.length > 1 ? "s" : ""}
-					</p>
+					</Text>
 					<div
 						className={cn(
 							"grid gap-3",
@@ -183,17 +184,26 @@ export function ReceiptUpload({
 								/>
 								{!someoneAlreadyPaid && isOwner && (
 									<Button
-										type="button"
-										variant="destructive"
-										size="icon"
-										className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+										type="primary"
+										danger
+										size="small"
+										icon={<X className="h-3 w-3" />}
+										style={{
+											position: 'absolute',
+											top: 4,
+											right: 4,
+											height: 24,
+											width: 24,
+											padding: 0,
+											opacity: 0,
+											transition: 'opacity 0.2s'
+										}}
+										className="group-hover:opacity-100"
 										onClick={(e) => {
 											e.stopPropagation();
 											handleRemove(index);
 										}}
-									>
-										<X className="h-3 w-3" />
-									</Button>
+									/>
 								)}
 							</div>
 						))}
@@ -204,38 +214,29 @@ export function ReceiptUpload({
 			{/* Upload Button */}
 			{canAddMore && isOwner && (
 				<Button
-					type="button"
-					variant="outline"
-					className="w-full"
+					block
 					onClick={() => {
 						handleInputClick();
 						fileInputRef.current?.click();
 					}}
+					icon={totalReceipts === 0 ? <Upload className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
 				>
-					{totalReceipts === 0 ? (
-						<>
-							<Upload className="mr-2 h-4 w-4" />
-							Upload Receipt{multiple ? "s" : ""}
-						</>
-					) : (
-						<>
-							<Plus className="mr-2 h-4 w-4" />
-							Add More ({totalReceipts}/{maxFiles})
-						</>
-					)}
+					{totalReceipts === 0
+						? `Upload Receipt${multiple ? "s" : ""}`
+						: `Add More (${totalReceipts}/${maxFiles})`}
 				</Button>
 			)}
 
 			{!canAddMore && multiple && (
-				<p className="text-sm text-muted-foreground text-center">
+				<Text type="secondary" style={{ fontSize: 14, textAlign: 'center' }}>
 					Maximum {maxFiles} receipts reached
-				</p>
+				</Text>
 			)}
 
-			<p className="text-xs text-muted-foreground">
+			<Text type="secondary" style={{ fontSize: 12 }}>
 				Accepts JPG, JPEG, PNG images (max 5MB each)
 				{multiple ? ` • Maximum ${maxFiles} files` : ""}
-			</p>
+			</Text>
 		</div>
 	);
 }

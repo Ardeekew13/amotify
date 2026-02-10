@@ -2,12 +2,13 @@
 import { GET_EXPENSES } from "@/app/api/graphql/expense";
 import Loading from "@/components/common/Loading";
 import ExpenseTable from "@/components/expense/ExpenseTable";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button, Tabs, Typography } from "antd";
 import { GetExpenses } from "@/interface/common/common";
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+
+const { Title, Text } = Typography;
 
 export default function ExpensePage() {
 	const router = useRouter();
@@ -49,28 +50,32 @@ export default function ExpensePage() {
 	}
 	console.log("isNavigating", isNavigating);
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between mb-6">
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-					<p className="text-muted-foreground">
+					<Title level={1} style={{ margin: 0, marginBottom: 4 }}>Expenses</Title>
+					<Text type="secondary">
 						Manage and track your shared expenses
-					</p>
+					</Text>
 				</div>
-				<Button onClick={() => handleAdd()}>Add Expense</Button>
+				<Button type="primary" onClick={() => handleAdd()}>Add Expense</Button>
 			</div>
-			<Tabs value={activeTab} onValueChange={handleTabChange}>
-				<TabsList>
-					<TabsTrigger value="all">All Expenses</TabsTrigger>
-					<TabsTrigger value="my">My Expenses</TabsTrigger>
-				</TabsList>
-				<TabsContent value="all">
-					<ExpenseTable {...tableProps} />
-				</TabsContent>
-				<TabsContent value="my">
-					<ExpenseTable {...tableProps} />
-				</TabsContent>
-			</Tabs>
+			<Tabs
+				activeKey={activeTab}
+				onChange={handleTabChange}
+				items={[
+					{
+						key: 'all',
+						label: 'All Expenses',
+						children: <ExpenseTable {...tableProps} />
+					},
+					{
+						key: 'my',
+						label: 'My Expenses',
+						children: <ExpenseTable {...tableProps} />
+					}
+				]}
+			/>
 		</div>
 	);
 }

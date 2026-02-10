@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, Row, Col, Statistic } from "antd";
 import { DashboardSummary } from "@/interface/common/common";
 import { formatCurrency } from "@/lib/utils";
 
@@ -12,35 +12,34 @@ export const DashboardSummaryCards = ({
   summary,
 }: DashboardSummaryCardsProps) => {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">You owe</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-500">
-            {formatCurrency(summary.youOwe)}
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">You’re owed</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-500">
-            {formatCurrency(summary.youAreOwed)}
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Expenses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{summary.activeExpenses}</div>
-        </CardContent>
-      </Card>
-    </div>
+    <Row gutter={[16, 16]}>
+      <Col xs={24} md={8}>
+        <Card>
+          <Statistic
+            title="You owe"
+            value={formatCurrency(summary.youOwe)}
+            valueStyle={{ color: '#ef4444', fontSize: 24, fontWeight: 'bold' }}
+          />
+        </Card>
+      </Col>
+      <Col xs={24} md={8}>
+        <Card>
+          <Statistic
+            title="You're owed"
+            value={formatCurrency(summary.youAreOwed)}
+            valueStyle={{ color: '#22c55e', fontSize: 24, fontWeight: 'bold' }}
+          />
+        </Card>
+      </Col>
+      <Col xs={24} md={8}>
+        <Card>
+          <Statistic
+            title="Active Expenses"
+            value={summary.activeExpenses}
+            valueStyle={{ fontSize: 24, fontWeight: 'bold' }}
+          />
+        </Card>
+      </Col>
+    </Row>
   );
 };

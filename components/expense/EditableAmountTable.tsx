@@ -1,21 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { DataTable } from "@/components/ui/data-table";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MemberExpense, MemberExpenseStatus } from "@/interface/common/common";
-import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "../ui/button";
-import { Badge, BadgeProps } from "../ui/badge";
-import { useAuthContext } from "../auth/AuthProvider";
-import { useMutation } from "@apollo/client/react";
 import {
-	CONFIRM_PAYMENT_RECEIVED,
-	MARK_AS_PAID,
+	MARK_AS_PAID
 } from "@/app/api/graphql/expense";
-import { toast } from "sonner";
-import { formatPercentage, formatCurrency } from "@/lib/helper";
+import { MemberExpense, MemberExpenseStatus } from "@/interface/common/common";
+import { formatCurrency, formatPercentage } from "@/lib/helper";
+import { useMutation } from "@apollo/client/react";
+import type { TableColumnsType } from "antd";
+import { App, Button, Input, Table, Tag } from "antd";
+import React, { useEffect, useState } from "react";
+import { useAuthContext } from "../auth/AuthProvider";
 
 interface EditableAmountTableProps {
 	data: MemberExpense[];
@@ -26,44 +20,23 @@ interface EditableAmountTableProps {
 	expenseId?: string;
 }
 
-// Helper to determine badge variant
-const getStatusBadgeVariant = (
-	status: MemberExpenseStatus,
-): BadgeProps["variant"] => {
-	switch (status) {
-		case MemberExpenseStatus.PAID:
-			return "success";
-		case MemberExpenseStatus.PENDING:
-			return "warning";
-		case MemberExpenseStatus.AWAITING_CONFIRMATION:
-			return "info";
-		default:
-			return "default";
-	}
-};
-
 // Reusable editable number input component
 interface EditableNumberInputProps {
 	value: number;
 	userId: string;
 	onChange: (userId: string, value: number) => void;
 	placeholder?: string;
-	className?: string;
 }
 
-function EditableNumberInput({ 
-	value, 
-	userId, 
-	onChange, 
-	placeholder = "0", 
-	className = "w-32 text-right" 
+function EditableNumberInput({
+	value,
+	userId,
+	onChange,
+	placeholder = "0",
 }: EditableNumberInputProps) {
-	// Show empty string for 0 values so users can type fresh
-	const formatValue = (val: number) => val === 0 ? "" : String(val);
-	
+	const formatValue = (val: number) => (val === 0 ? "" : String(val));
 	const [localValue, setLocalValue] = useState(formatValue(value));
 
-	// Update local value when prop changes
 	useEffect(() => {
 		setLocalValue(formatValue(value));
 	}, [value]);
@@ -77,22 +50,21 @@ function EditableNumberInput({
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
-			e.currentTarget.blur();
+			(e.target as HTMLInputElement).blur();
 		}
 	};
 
 	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-		// Select all text on focus for easy replacement
 		e.target.select();
 	};
 
 	return (
-		<div className="flex justify-end">
+		<div style={{ display: "flex", justifyContent: "flex-end" }}>
 			<Input
 				type="number"
 				value={localValue}
 				placeholder={placeholder}
-				className={className}
+				style={{ width: 120, textAlign: "right" }}
 				onChange={(e) => setLocalValue(e.target.value)}
 				onBlur={handleSubmit}
 				onKeyDown={handleKeyDown}
@@ -111,7 +83,7 @@ export function EditableAmountTable({
 	expenseId,
 }: EditableAmountTableProps) {
 	const { user } = useAuthContext();
-
+	const { message } = App.useApp();
 	const [markReceivePayment, { loading }] = useMutation(MARK_AS_PAID);
 
 	const onReceivePayment = (userId: string) => {
@@ -126,120 +98,122 @@ export function EditableAmountTable({
 		}).then((result) => {
 			const data = result.data as any;
 			if (data?.markSplitAsPaid.success) {
-				toast.success(
+				message.success(
 					data?.markSplitAsPaid?.message || "Payment marked as received",
 				);
 			} else {
-				toast.error(data?.markSplitAsPaid.message || "Failed to mark payment");
+				message.error(
+					data?.markSplitAsPaid.message || "Failed to mark payment",
+				);
 			}
 		});
 	};
 
-	const columns: ColumnDef<MemberExpense>[] = [
+	const isPaidByCurrentUser = paidBy === user?._id;
+
+	const columns: TableColumnsType<MemberExpense> = [
 		{
-			accessorFn: (row) => `${row?.user?.firstName} ${row.user?.lastName}`,
-			header: "Full Name",
-			footer: () => <strong>Total:</strong>,
+			title: "Full Name",
+			key: "fullName",
+			render: (_, record) =>
+				`${record.user?.firstName} ${record.user?.lastName}`,
 		},
 		{
-			id: "splitPercentage",
-			header: () => <div className="text-right">Split (%)</div>,
-			cell: ({ row }) => (
+			title: <div style={{ textAlign: "right" }}>Split (%)</div>,
+			key: "splitPercentage",
+			width: 100,
+			align: "right",
+			render: (_, record) => (
 				<EditableNumberInput
-					value={row.original.splitPercentage || 0}
-					userId={row.original.user._id}
+					value={record.splitPercentage || 0}
+					userId={record.user._id}
 					onChange={onSplitPercentageChange}
 				/>
 			),
-			footer: ({ table }) => {
-				const total = table
-					.getRowModel()
-					.rows.reduce(
-						(sum, row) => sum + (row.original.splitPercentage || 0),
-						0,
-					);
-
-				return <div className="text-right font-bold">{formatPercentage(total)}</div>;
-			},
 		},
 		{
-			id: "amount",
-			header: () => <div className="text-right">Amount</div>,
-			cell: ({ row }) => (
+			title: <div style={{ textAlign: "right" }}>Amount</div>,
+			key: "amount",
+			width: 100,
+			align: "right",
+			render: (_, record) => (
 				<EditableNumberInput
-					value={row.original.amount || 0}
-					userId={row.original.user._id}
+					value={record.amount || 0}
+					userId={record.user._id}
 					onChange={onAmountChange}
 				/>
 			),
-			size: 80,
-			footer: ({ table }) => {
-				const total = table
-					.getRowModel()
-					.rows.reduce((sum, row) => sum + (row.original.amount || 0), 0);
-
-				return <div className="text-right font-bold">{formatCurrency(total)}</div>;
-			},
 		},
 		{
-			id: "status",
-			header: () => <div className="text-center">Status</div>,
-			cell: ({ row }) => {
+			title: <div style={{ textAlign: "center" }}>Status</div>,
+			key: "status",
+			align: "center",
+			width: 80,
+			render: (_, record) => {
+				const status = record.status;
+				let color = "default";
+				let text = "Pending";
+
+				if (status === MemberExpenseStatus.PAID) {
+					color = "green";
+					text = "Paid";
+				} else if (status === MemberExpenseStatus.AWAITING_CONFIRMATION) {
+					color = "blue";
+					text = "Awaiting Confirmation";
+				} else if (status === MemberExpenseStatus.PENDING) {
+					color = "gold";
+					text = "Pending";
+				}
+
 				return (
-					<div className="flex justify-center">
-						<Badge
-							className="text-center"
-							variant={getStatusBadgeVariant(row.original.status)}
-						>
-							{row.original.status === MemberExpenseStatus.PAID
-								? "Paid"
-								: row.original.status ===
-									  MemberExpenseStatus.AWAITING_CONFIRMATION
-									? "Awaiting Confirmation"
-									: "Pending"}
-						</Badge>
-					</div>
+					<Tag
+						style={{
+							fontSize: "14px",
+							padding: "4px 8px",
+							fontWeight: 500,
+						}}
+						color={color}
+					>
+						{text}
+					</Tag>
 				);
 			},
-			size: 80,
 		},
 	];
 
-	// Conditionally add the "Actions" column
-	const isPaidByCurrentUser = paidBy === user?._id;
-
 	if (isPaidByCurrentUser) {
 		columns.push({
-			id: "actions",
-			header: () => <div className="text-center">Actions</div>,
-			cell: ({ row }) => {
-				const isMemberRow = row.original.user?._id !== user?._id;
+			title: <div style={{ textAlign: "center" }}>Actions</div>,
+			key: "actions",
+			align: "center",
+			width: 120,
+			render: (_, record) => {
+				const isMemberRow = record.user?._id !== user?._id;
 				const canMarkAsPaid =
 					isMemberRow &&
-					row.original.status === MemberExpenseStatus.AWAITING_CONFIRMATION;
+					record.status === MemberExpenseStatus.AWAITING_CONFIRMATION;
 
 				return (
-					<div className="flex justify-center items-center gap-2">
+					<div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
 						{canMarkAsPaid && (
 							<Button
-								variant="success"
-								size="xs"
-								type="button"
+								type="primary"
+								size="small"
 								onClick={(e) => {
 									e.stopPropagation();
-									onReceivePayment(row.original.user._id);
+									onReceivePayment(record.user._id);
 								}}
+								style={{ backgroundColor: "#22c55e" }}
 							>
 								Receive Payment
 							</Button>
 						)}
 						<Button
-							type="button"
-							variant="destructive"
-							size="xs"
+							danger
+							size="small"
 							onClick={(e) => {
 								e.stopPropagation();
-								onRemoveMember(row.original.user._id);
+								onRemoveMember(record.user._id);
 							}}
 						>
 							Remove
@@ -247,13 +221,48 @@ export function EditableAmountTable({
 					</div>
 				);
 			},
-			size: 100,
 		});
 	}
 
 	if (loading) {
-		return <div className="flex items-center justify-center py-8">Processing payment...</div>;
+		return (
+			<div style={{ textAlign: "center", padding: 32 }}>
+				Processing payment...
+			</div>
+		);
 	}
 
-	return <DataTable columns={columns} data={data} />;
+	const totalSplit = data.reduce(
+		(sum, item) => sum + (item.splitPercentage || 0),
+		0,
+	);
+	const totalAmount = data.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+	return (
+		<Table
+			columns={columns}
+			dataSource={data}
+			rowKey={(record) => record.user._id}
+			pagination={false}
+			summary={() => (
+				<Table.Summary.Row>
+					<Table.Summary.Cell index={0}>
+						<strong>Total:</strong>
+					</Table.Summary.Cell>
+					<Table.Summary.Cell index={1}>
+						<div style={{ textAlign: "right", fontWeight: "bold" }}>
+							{formatPercentage(totalSplit)}
+						</div>
+					</Table.Summary.Cell>
+					<Table.Summary.Cell index={2}>
+						<div style={{ textAlign: "right", fontWeight: "bold" }}>
+							{formatCurrency(totalAmount)}
+						</div>
+					</Table.Summary.Cell>
+					<Table.Summary.Cell index={3} />
+					{isPaidByCurrentUser && <Table.Summary.Cell index={4} />}
+				</Table.Summary.Row>
+			)}
+		/>
+	);
 }

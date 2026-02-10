@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { DataTable } from "@/components/ui/data-table";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useEffect } from "react";
+import { Table } from "antd";
+import type { TableColumnsType } from "antd";
 import { User } from "@/interface/userInterface";
-import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 
 interface UserSelectionTableProps {
 	users: User[];
@@ -17,72 +16,47 @@ export function UserSelectionTable({
 	onSelectionChange,
 	initialSelectedUsers = [],
 }: UserSelectionTableProps) {
-	const [rowSelection, setRowSelection] = useState<RowSelectionState>(() => {
-		const initialSelection: RowSelectionState = {};
-		initialSelectedUsers.forEach((user) => {
-			const index = users.findIndex((u) => u._id === user._id);
-			if (index !== -1) {
-				initialSelection[index] = true;
-			}
-		});
-		return initialSelection;
+	const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>(() => {
+		return initialSelectedUsers.map((user) => user._id);
 	});
 
-	const columns: ColumnDef<User>[] = [
+	useEffect(() => {
+		setSelectedRowKeys(initialSelectedUsers.map((user) => user._id));
+	}, [initialSelectedUsers]);
+
+	const columns: TableColumnsType<User> = [
 		{
-			id: "select",
-			header: ({ table }) => (
-				<Checkbox
-					checked={table.getIsAllPageRowsSelected()}
-					onCheckedChange={(checked) =>
-						table.toggleAllPageRowsSelected(!!checked)
-					}
-				/>
-			),
-			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(checked) => row.toggleSelected(!!checked)}
-				/>
-			),
+			title: "First Name",
+			dataIndex: "firstName",
+			key: "firstName",
 		},
 		{
-			accessorKey: "firstName",
-			header: "First Name",
+			title: "Last Name",
+			dataIndex: "lastName",
+			key: "lastName",
 		},
 		{
-			accessorKey: "lastName",
-			header: "Last Name",
-		},
-		{
-			accessorKey: "userName",
-			header: "Username",
+			title: "Username",
+			dataIndex: "userName",
+			key: "userName",
 		},
 	];
 
-	// Handle selection changes
-	const handleRowSelectionChange = (updater: any) => {
-		const newSelection =
-			typeof updater === "function" ? updater(rowSelection) : updater;
-		setRowSelection(newSelection);
-
-		// Get selected users
-		const selectedIndexes = Object.keys(newSelection).filter(
-			(key) => newSelection[key],
-		);
-		const selectedUsers = selectedIndexes.map(
-			(index) => users[parseInt(index)],
-		);
-
-		onSelectionChange(selectedUsers);
+	const rowSelection = {
+		selectedRowKeys,
+		onChange: (selectedKeys: React.Key[], selectedRows: User[]) => {
+			setSelectedRowKeys(selectedKeys as string[]);
+			onSelectionChange(selectedRows);
+		},
 	};
 
 	return (
-		<DataTable
+		<Table
 			columns={columns}
-			data={users}
+			dataSource={users}
+			rowKey="_id"
 			rowSelection={rowSelection}
-			onRowSelectionChange={handleRowSelectionChange}
+			pagination={{ pageSize: 10 }}
 		/>
 	);
 }

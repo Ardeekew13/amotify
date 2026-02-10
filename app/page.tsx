@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import { Spinner } from "@/components/ui/spinner";
 import Loading from "@/components/common/Loading";
 
 export default function HomePage() {
@@ -19,7 +18,7 @@ export default function HomePage() {
 	}, [status, router]);
 
 	return (
-		<div className="flex h-screen items-center justify-center">
+		<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
 			<Loading />
 		</div>
 	);

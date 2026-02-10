@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { LoginForm } from "@/components/forms/login-form";
 import { useAuthContext } from "@/components/auth/AuthProvider";
 import { useEffect } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { Spin } from "antd";
 
 function LoginContent() {
 	const searchParams = useSearchParams();
@@ -28,8 +28,8 @@ function LoginPageInternal() {
 
 	if (status === "loading") {
 		return (
-			<div className="flex h-screen items-center justify-center">
-				<Spinner />
+			<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+				<Spin size="large" />
 			</div>
 		);
 	}
@@ -45,8 +45,8 @@ export default function LoginPage() {
 	return (
 		<Suspense
 			fallback={
-				<div className="flex h-screen items-center justify-center">
-					<Spinner />
+				<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+					<Spin size="large" />
 				</div>
 			}
 		>

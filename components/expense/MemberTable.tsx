@@ -1,12 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Button, Card, App } from "antd";
+import { CheckOutlined } from "@ant-design/icons";
 import { MemberExpense } from "@/interface/common/common";
-import { CheckIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { EditableAmountTable } from "./EditableAmountTable";
-import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { roundToTwoDecimals, distributePercentages } from "@/lib/helper";
 
@@ -30,10 +28,11 @@ const MemberSelectTable = ({
 }: IProps) => {
 	const [isSplitEvenly, setIsSplitEvenly] = useState<boolean>(false);
 	const { user } = useAuth();
+	const { message } = App.useApp();
 
 	const handleSplitEvenly = () => {
 		if (totalAmount <= 0) {
-			toast.error("Total Amount must be greater than 0 to split evenly.");
+			message.error("Total Amount must be greater than 0 to split evenly.");
 			return;
 		}
 		const newSplitState = !isSplitEvenly;
@@ -149,30 +148,30 @@ const MemberSelectTable = ({
 	};
 
 	return (
-		<Card>
-			<CardTitle className="flex justify-between items-center py-2 px-4">
-				<div className="flex gap-2 ml-auto">
+		<Card 
+			extra={
+				<div style={{ display: 'flex', gap: 8 }}>
 					<Button
-						variant="ghost"
-						size="sm"
+						type={isSplitEvenly ? "primary" : "default"}
+						size="middle"
 						onClick={handleSplitEvenly}
-						type="button"
+						icon={isSplitEvenly ? <CheckOutlined /> : null}
 					>
-						{isSplitEvenly && <CheckIcon className="h-4 w-4 mr-2" />}
 						Split Evenly
 					</Button>
 					{user?._id === paidBy && (
 						<Button
-							size="sm"
-							className="bg-black hover:bg-gray-800"
-							type="button"
+							type="primary"
+							size="middle"
 							onClick={onOpenDialog}
+							style={{ backgroundColor: '#000000' }}
 						>
 							Add Members
 						</Button>
 					)}
 				</div>
-			</CardTitle>
+			}
+		>
 			<EditableAmountTable
 				data={selectedUsers}
 				onSplitPercentageChange={handleSplitPercentageChange}

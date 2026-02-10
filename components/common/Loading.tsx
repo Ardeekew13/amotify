@@ -1,6 +1,5 @@
 import React from 'react';
-import { Spinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils';
+import { Spin } from 'antd';
 
 interface LoadingProps {
 	text?: string;
@@ -12,11 +11,16 @@ const Loading = ({
 	className 
 }: LoadingProps) => {
 	return (
-		<div className={cn("flex items-center justify-center min-h-[60vh]", className)}>
-			<div className="flex flex-col items-center gap-4">
-				<Spinner className="size-12" />
-				<p className="text-muted-foreground">{text}</p>
-			</div>
+		<div className={className} style={{ 
+			display: 'flex', 
+			flexDirection: 'column',
+			alignItems: 'center', 
+			justifyContent: 'center', 
+			minHeight: '60vh',
+			gap: '16px'
+		}}>
+			<Spin size="large" />
+			<p style={{ color: '#6b7280' }}>{text}</p>
 		</div>
 	);
 };

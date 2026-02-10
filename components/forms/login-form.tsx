@@ -1,121 +1,103 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import z from "zod";
+import { Form, Input, Button, Typography, Space, App } from "antd";
+import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import { Spinner } from "@/components/ui/spinner";
+import { useEffect, useState } from "react";
 
-// Zod validation schema
-const signinSchema = z.object({
-	userName: z.string().min(3, "Username must be at least 3 characters"),
-	password: z.string().min(6, "Password must be at least 6 characters"),
-});
+const { Title, Text, Link } = Typography;
 
-type SigninFormData = z.infer<typeof signinSchema>;
+interface LoginFormData {
+	userName: string;
+	password: string;
+}
 
-export function LoginForm({
-	className,
-	callbackUrl,
-	...props
-}: React.ComponentPropsWithoutRef<"form"> & { callbackUrl?: string | null }) {
+export function LoginForm({ callbackUrl }: { callbackUrl?: string | null }) {
+	const [form] = Form.useForm();
 	const router = useRouter();
-	const { login, isLoading } = useAuthContext();
+	const { login, isLoading, status } = useAuthContext();
+	const { message } = App.useApp();
+	const [loginSuccess, setLoginSuccess] = useState(false);
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors, isSubmitting },
-	} = useForm<SigninFormData>({
-		resolver: zodResolver(signinSchema),
-	});
+	// Handle redirect after successful login and status update
+	useEffect(() => {
+		if (loginSuccess && status === "authenticated") {
+			router.push(callbackUrl || "/dashboard");
+		}
+	}, [status, loginSuccess, router, callbackUrl]);
 
-	const isDisabled = isLoading || isSubmitting;
-
-	const onSubmit = async (data: SigninFormData) => {
+	const onFinish = async (values: LoginFormData) => {
 		try {
-			const result = await login(data.userName, data.password);
+			const result = await login(values.userName, values.password);
 
 			if (result?.data?.login?.success) {
-				toast.success("Login Successful", {
-					description: "You have been logged in successfully.",
-				});
-
-				// Redirect to original destination or dashboard
-				router.push(callbackUrl || "/dashboard");
+				message.success("Login successful!");
+				setLoginSuccess(true);
 			} else {
-				toast.error("Login Failed", {
-					description: result?.data?.login?.message || "Invalid credentials",
-				});
+				message.error(result?.data?.login?.message || "Invalid credentials");
 			}
 		} catch (err: any) {
-			toast.error("Error", {
-				description: err.message || "An error occurred",
-			});
+			message.error(err.message || "An error occurred");
 		}
 	};
 
 	return (
-		<form
-			className={cn("flex flex-col gap-6", className)}
-			{...props}
-			onSubmit={handleSubmit(onSubmit)}
-		>
-			<div className="flex flex-col items-center gap-2 text-center">
-				<h1 className="text-2xl font-bold">Login to your account</h1>
-				<p className="text-balance text-sm text-muted-foreground">
+		<Space direction="vertical" size="large" style={{ width: "100%" }}>
+			<div style={{ textAlign: "center" }}>
+				<Title level={2} style={{ marginBottom: 8 }}>
+					Login to your account
+				</Title>
+				<Text type="secondary">
 					Enter your username below to login to your account
-				</p>
+				</Text>
 			</div>
 
-			<div className="grid gap-6">
-				<div className="grid gap-2">
-					<Label htmlFor="userName">Username</Label>
-					<Input
-						id="userName"
-						type="text"
-						placeholder="Enter Username"
-						disabled={isDisabled}
-						{...register("userName")}
-					/>
-					{errors.userName && (
-						<span className="text-sm text-red-600">
-							{errors.userName.message}
-						</span>
-					)}
-				</div>
-				<div className="grid gap-2">
-					<Label htmlFor="password">Password</Label>
-					<Input
-						id="password"
-						type="password"
+			<Form
+				form={form}
+				name="login"
+				onFinish={onFinish}
+				layout="vertical"
+				size="large"
+				disabled={isLoading}
+			>
+				<Form.Item
+					name="userName"
+					label="Username"
+					rules={[
+						{ required: true, message: "Please input your username!" },
+						{ min: 3, message: "Username must be at least 3 characters" },
+					]}
+				>
+					<Input prefix={<UserOutlined />} placeholder="Enter Username" />
+				</Form.Item>
+
+				<Form.Item
+					name="password"
+					label="Password"
+					rules={[
+						{ required: true, message: "Please input your password!" },
+						{ min: 6, message: "Password must be at least 6 characters" },
+					]}
+				>
+					<Input.Password
+						prefix={<LockOutlined />}
 						placeholder="Enter Password"
-						disabled={isDisabled}
-						{...register("password")}
 					/>
-					{errors.password && (
-						<span className="text-sm text-red-600">
-							{errors.password.message}
-						</span>
-					)}
-				</div>
-				<Button type="submit" className="w-full" disabled={isDisabled}>
-					{isSubmitting && <Spinner className="mr-2 h-4 w-4" />}
-					{isSubmitting ? "Logging in..." : "Login"}
-				</Button>
+				</Form.Item>
+
+				<Form.Item>
+					<Button type="primary" htmlType="submit" loading={isLoading} block>
+						{isLoading ? "Logging in..." : "Login"}
+					</Button>
+				</Form.Item>
+			</Form>
+
+			<div style={{ textAlign: "center" }}>
+				<Text type="secondary">
+					Don&apos;t have an account? <Link href="/signup">Sign up</Link>
+				</Text>
 			</div>
-			<div className="text-center text-sm">
-				Don&apos;t have an account?{" "}
-				<a href="/signup" className="underline underline-offset-4">
-					Sign up
-				</a>
-			</div>
-		</form>
+		</Space>
 	);
 }

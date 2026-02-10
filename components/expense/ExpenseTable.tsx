@@ -1,25 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button, Card, Table, Dropdown, Tag, Skeleton } from "antd";
+import { MoreOutlined } from "@ant-design/icons";
+import type { MenuProps, TableColumnsType } from "antd";
 import { Expense, ExpenseStatus } from "@/interface/common/common";
-import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 import dayjs from "dayjs";
-import { Skeleton } from "../ui/skeleton";
 
 interface IExpenseProps {
 	expenses: Expense[];
@@ -28,122 +13,117 @@ interface IExpenseProps {
 }
 
 const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
-	const columns: ColumnDef<Expense>[] = [
+	const getMenuItems = (record: Expense): MenuProps["items"] => [
 		{
-			accessorKey: "title",
-			header: "Title",
-			cell: ({ row }) => <div>{row.getValue("title")}</div>,
-			size: 200,
+			key: "view",
+			label: "View Details",
+			onClick: () => onAdd(record._id),
+		},
+	];
+
+	const columns: TableColumnsType<Expense> = [
+		{
+			title: "Title",
+			dataIndex: "title",
+			key: "title",
+			width: 200,
 		},
 		{
-			accessorKey: "amount",
-			header: "Amount",
-			cell: ({ row }) => {
-				const amount = parseFloat(row.getValue("amount"));
+			title: "Amount",
+			dataIndex: "amount",
+			key: "amount",
+			width: 150,
+			render: (amount: number) => {
 				const formatted = new Intl.NumberFormat("en-US", {
 					style: "currency",
 					currency: "PHP",
 				}).format(amount);
-				return <div className="font-semibold">{formatted}</div>;
+				return <span style={{ fontWeight: 600 }}>{formatted}</span>;
 			},
-			size: 150,
 		},
 		{
-			accessorKey: "paidByUser",
-			header: "Paid By",
-			cell: ({ row }) => (
-				<div>
-					{row.original?.paidByUser?.firstName +
-						" " +
-						row.original?.paidByUser?.lastName}
-				</div>
+			title: "Paid By",
+			dataIndex: "paidByUser",
+			key: "paidByUser",
+			width: 150,
+			render: (paidByUser: any) =>
+				`${paidByUser?.firstName || ""} ${paidByUser?.lastName || ""}`,
+		},
+		{
+			title: "Date",
+			dataIndex: "createdAt",
+			key: "createdAt",
+			width: 150,
+			render: (createdAt: string) => {
+				const date = dayjs(createdAt);
+				return (
+					<div>
+						<div style={{ fontWeight: 500 }}>{date.format("MMM DD, YYYY")}</div>
+						<div style={{ fontSize: "12px", color: "#6b7280" }}>
+							{date.format("h:mm A")}
+						</div>
+					</div>
+				);
+			},
+		},
+		{
+			title: "Status",
+			dataIndex: "status",
+			key: "status",
+			width: 180,
+			align: "center",
+			render: (status: ExpenseStatus) => {
+				const isAwaiting = status === ExpenseStatus.AWAITING_PAYMENT;
+				return (
+					<Tag
+						variant="solid"
+						color={isAwaiting ? "blue" : "green"}
+						style={{
+							fontSize: "14px",
+							padding: "4px 8px",
+							fontWeight: 500,
+						}}
+					>
+						{isAwaiting ? "Awaiting Payment" : "Completed"}
+					</Tag>
+				);
+			},
+		},
+		{
+			title: "",
+			key: "actions",
+			width: 60,
+			render: (_, record) => (
+				<Dropdown menu={{ items: getMenuItems(record) }} trigger={["click"]}>
+					<Button type="text" icon={<MoreOutlined />} />
+				</Dropdown>
 			),
-			size: 150,
-		},
-		{
-			accessorKey: "createdAt",
-			header: "Date",
-			cell: ({ row }) => {
-				const createdAt = dayjs(row.getValue("createdAt") as string);
-				return (
-					<div className="text-sm">
-						<div className="font-medium">
-							{createdAt.format("MMM DD, YYYY")}
-						</div>
-						<div className="text-muted-foreground text-xs">
-							{createdAt.format("h:mm A")}
-						</div>
-					</div>
-				);
-			},
-			size: 150,
-		},
-		{
-			id: "status",
-			header: () => <div className="text-center">Status</div>,
-			cell: ({ row }) => {
-				const status = row?.original?.status;
-				const statusText =
-					status === ExpenseStatus.AWAITING_PAYMENT
-						? "Awaiting Payment"
-						: "Completed";
-				return (
-					<div className="flex justify-center">
-						<span
-							className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-								status === ExpenseStatus.AWAITING_PAYMENT
-									? "bg-blue-500 text-white"
-									: "bg-green-500 text-white"
-							}`}
-						>
-							{statusText}
-						</span>
-					</div>
-				);
-			},
-			size: 180,
-		},
-		{
-			id: "actions",
-			cell: ({ row }) => {
-				return (
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="icon">
-								<MoreHorizontal className="h-4 w-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => onAdd(row?.original?._id)}>
-								View Details
-							</DropdownMenuItem>
-
-							{/* <DropdownMenuItem className="text-red-600">
-								Delete
-							</DropdownMenuItem> */}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				);
-			},
-			size: 60,
 		},
 	];
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>All Expenses</CardTitle>
-				<CardDescription>
+		<Card
+			title="All Expenses"
+			extra={
+				<span style={{ color: "#6b7280", fontSize: "14px" }}>
 					Here&apos;s a list of your expense records.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				{loading ? (
-					<Skeleton className="h-64 w-full rounded-md" />
-				) : (
-					<DataTable columns={columns} data={expenses} />
-				)}
-			</CardContent>
+				</span>
+			}
+		>
+			{loading ? (
+				<Skeleton active paragraph={{ rows: 8 }} />
+			) : (
+				<Table
+					columns={columns}
+					dataSource={expenses}
+					rowKey="_id"
+					pagination={{
+						pageSize: 10,
+						showSizeChanger: true,
+						showTotal: (total) => `Total ${total} expenses`,
+					}}
+				/>
+			)}
 		</Card>
 	);
 };

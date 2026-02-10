@@ -6,8 +6,10 @@ import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCa
 import { DashboardActionList } from "@/components/dashboard/DashboardActionList";
 import { DashboardRecentExpenses } from "@/components/dashboard/DashboardRecentExpenses";
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import { Skeleton } from "@/components/ui/skeleton";
 import Loading from "@/components/common/Loading";
+import { Typography, Row, Col } from "antd";
+
+const { Title, Text } = Typography;
 
 export default function DashboardPage() {
 	const { user } = useAuthContext();
@@ -26,10 +28,10 @@ export default function DashboardPage() {
 
 	if (error) {
 		return (
-			<div className="text-center py-10">
-				<p className="text-red-500">
+			<div style={{ textAlign: 'center', padding: '40px 0' }}>
+				<Text type="danger">
 					Error loading dashboard data. Please try again later.
-				</p>
+				</Text>
 			</div>
 		);
 	}
@@ -40,27 +42,27 @@ export default function DashboardPage() {
 	const recentExpenses = dashboardData?.recentExpenses || [];
 
 	return (
-		<div className="space-y-6">
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-				<p className="text-muted-foreground">
+				<Title level={1} style={{ margin: 0, marginBottom: 4 }}>Dashboard</Title>
+				<Text type="secondary">
 					Welcome back, {user?.firstName}! Here&apos;s what&apos;s happening.
-				</p>
+				</Text>
 			</div>
 
 			{summary && <DashboardSummaryCards summary={summary} />}
 
-			<div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-				<div className="lg:col-span-2">
+			<Row gutter={[24, 24]}>
+				<Col xs={24} lg={10}>
 					<DashboardActionList
 						actionItems={actionItems}
 						currentUserId={user?._id ?? ""}
 					/>
-				</div>
-				<div className="lg:col-span-3">
+				</Col>
+				<Col xs={24} lg={14}>
 					<DashboardRecentExpenses expenses={recentExpenses} />
-				</div>
-			</div>
+				</Col>
+			</Row>
 		</div>
 	);
 }

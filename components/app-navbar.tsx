@@ -5,26 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import {
 	LayoutDashboard,
 	Receipt,
-	Settings2,
-	Users,
 	LogOut,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button, Avatar, Dropdown, Typography } from "antd";
+import type { MenuProps } from "antd";
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import {
-	Avatar,
-	AvatarFallback,
-	AvatarImage,
-} from "@/components/ui/avatar";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+const { Text } = Typography;
 
 const navItems = [
 	{
@@ -49,17 +36,43 @@ export function AppNavbar() {
 		router.push("/login");
 	};
 
+	const dropdownItems: MenuProps['items'] = [
+		{
+			key: 'logout',
+			label: (
+				<span onClick={handleLogout}>
+					<LogOut style={{ marginRight: 8, width: 16, height: 16, display: 'inline' }} />
+					Log out
+				</span>
+			),
+		},
+	];
+
 	return (
-		<header className="sticky top-0 z-50 flex h-16 items-center justify-between w-full gap-4 bg-background px-6">
-			<div className="flex items-center gap-6">
-				<h1
-					className="cursor-pointer text-lg font-semibold"
+		<header style={{
+			position: 'sticky',
+			top: 0,
+			zIndex: 50,
+			display: 'flex',
+			height: 64,
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			width: '100%',
+			gap: 16,
+			backgroundColor: '#fff',
+			padding: '0 24px',
+			borderBottom: '1px solid #f0f0f0'
+		}}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+				<Text
+					strong
+					style={{ cursor: 'pointer', fontSize: 18 }}
 					onClick={() => router.push("/dashboard")}
 				>
 					Amotify
-				</h1>
+				</Text>
 
-				<nav className="flex items-center gap-2">
+				<nav style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					{navItems.map((item) => {
 						const Icon = item.icon;
 						const isActive = pathname.startsWith(item.url);
@@ -67,15 +80,11 @@ export function AppNavbar() {
 						return (
 							<Button
 								key={item.title}
-								variant="ghost"
-								size="sm"
-								className={cn(
-									"gap-2",
-									isActive && "bg-accent text-accent-foreground",
-								)}
+								type={isActive ? "primary" : "text"}
+								size="small"
+								icon={<Icon style={{ width: 16, height: 16 }} />}
 								onClick={() => router.push(item.url)}
 							>
-								<Icon className="h-4 w-4" />
 								{item.title}
 							</Button>
 						);
@@ -84,31 +93,24 @@ export function AppNavbar() {
 			</div>
 
 			{user && (
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="relative justify-end h-8 w-40 ">
-							<Avatar className="h-8 w-8">
-								<AvatarImage
-									src="/avatars/01.png"
-									alt={`${user?.firstName} ${user?.lastName}`}
-								/>
-								<AvatarFallback>
-									{user?.firstName?.[0]}
-									{user.lastName?.[0]}
-								</AvatarFallback>
-							</Avatar>
-							<h1>
-								{user.firstName} {user.lastName}
-							</h1>
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent className="w-56" align="end" forceMount>
-						<DropdownMenuItem onClick={handleLogout}>
-							<LogOut className="mr-2 h-4 w-4" />
-							<span>Log out</span>
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+				<Dropdown menu={{ items: dropdownItems }} placement="bottomRight">
+					<Button
+						type="text"
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							height: 32,
+							width: 160,
+							justifyContent: 'flex-end'
+						}}
+					>
+						<Avatar size={32} style={{ backgroundColor: '#22c55e' }}>
+							{user?.firstName?.[0]}{user?.lastName?.[0]}
+						</Avatar>
+						<Text>{user.firstName} {user.lastName}</Text>
+					</Button>
+				</Dropdown>
 			)}
 		</header>
 	);

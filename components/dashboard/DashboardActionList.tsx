@@ -1,20 +1,14 @@
 "use client";
 
 import { Expense, MemberExpenseStatus } from "@/interface/common/common";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, List, Tag, Button, Typography } from "antd";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
+
+const { Text } = Typography;
 
 interface DashboardActionListProps {
   actionItems: Expense[];
@@ -61,60 +55,60 @@ export const DashboardActionList = ({
     return null;
   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Action Items</CardTitle>
-        <CardDescription>
-          Expenses that need your attention for payment or confirmation.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {actionItems.length > 0 ? (
-            actionItems.map((item) => {
-              const actionInfo = getActionInfo(item);
-              if (!actionInfo) return null;
+  const dataSource = actionItems
+    .map((item) => {
+      const actionInfo = getActionInfo(item);
+      if (!actionInfo) return null;
+      return { ...item, actionInfo };
+    })
+    .filter(Boolean) as Array<Expense & { actionInfo: NonNullable<ReturnType<typeof getActionInfo>> }>;
 
-              return (
-                <div
-                  key={item._id}
-                  className="flex items-center justify-between"
-                >
-                  <div>
-                    <p className="font-semibold">{item.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {actionInfo.text}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {dayjs(item.updatedAt).fromNow()}
-                    </p>
+  return (
+    <Card
+      title="Action Items"
+      extra={
+        <Text type="secondary" style={{ fontSize: 14 }}>
+          Expenses that need your attention for payment or confirmation.
+        </Text>
+      }
+    >
+      <List
+        dataSource={dataSource}
+        locale={{ emptyText: "No action items for now." }}
+        renderItem={(item) => (
+          <List.Item
+            actions={[
+              <Tag
+                key="status"
+                color={
+                  item.actionInfo.status === MemberExpenseStatus.PENDING
+                    ? "gold"
+                    : "default"
+                }
+              >
+                {item.actionInfo.status.replace("_", " ")}
+              </Tag>,
+              <Link key="action" href={`/expense/manage/${item._id}`}>
+                <Button size="small">{item.actionInfo.action}</Button>
+              </Link>,
+            ]}
+          >
+            <List.Item.Meta
+              title={<span style={{ fontWeight: 600 }}>{item.title}</span>}
+              description={
+                <>
+                  <div style={{ fontSize: 14, color: '#6b7280' }}>
+                    {item.actionInfo.text}
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge
-                      variant={
-                        actionInfo.status === MemberExpenseStatus.PENDING
-                          ? "warning"
-                          : "secondary"
-                      }
-											className="text-center"
-                    >
-                      {actionInfo.status.replace("_", " ")}
-                    </Badge>
-                    <Link href={`/expense/manage/${item._id}`}>
-                      <Button size="xs">{actionInfo.action}</Button>
-                    </Link>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+                    {dayjs(item.updatedAt).fromNow()}
                   </div>
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No action items for now.
-            </p>
-          )}
-        </div>
-      </CardContent>
+                </>
+              }
+            />
+          </List.Item>
+        )}
+      />
     </Card>
   );
 };

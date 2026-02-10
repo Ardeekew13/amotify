@@ -1,16 +1,7 @@
 "use client";
 
 import { GET_USERS_EXCLUDE_SELF } from "@/app/api/graphql/user";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Modal, Button, Skeleton } from "antd";
 import { MemberExpense, MemberExpenseStatus } from "@/interface/common/common";
 import { User } from "@/interface/userInterface";
 import { useQuery } from "@apollo/client/react";
@@ -86,37 +77,37 @@ const AddMemberDialog = ({
 	];
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="max-w-3xl">
-				<DialogHeader>
-					<DialogTitle>Add Members</DialogTitle>
-					<DialogDescription>
-						Select users to add to this expense
-					</DialogDescription>
-				</DialogHeader>
-				<div className="py-4">
-					{loading ? (
-						<div className="space-y-2">
-							<Skeleton className="h-10 w-full" />
-							<Skeleton className="h-10 w-full" />
-							<Skeleton className="h-10 w-full" />
-						</div>
-					) : (
-						<UserSelectionTable
-							users={allUsers}
-							onSelectionChange={handleSelectionChange}
-							initialSelectedUsers={selectedUsers}
-						/>
-					)}
-				</div>{" "}
-				<DialogFooter>
-					<Button variant="outline" onClick={onClose}>
-						Cancel
-					</Button>
-					<Button onClick={handleAddMembers}>Add Selected Members</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+		<Modal
+			title="Add Members"
+			open={isOpen}
+			onCancel={onClose}
+			width={800}
+			footer={[
+				<Button key="cancel" onClick={onClose}>
+					Cancel
+				</Button>,
+				<Button key="submit" type="primary" onClick={handleAddMembers}>
+					Add Selected Members
+				</Button>,
+			]}
+		>
+			<div style={{ marginBottom: 16, color: '#6b7280' }}>
+				Select users to add to this expense
+			</div>
+			{loading ? (
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+					<Skeleton active />
+					<Skeleton active />
+					<Skeleton active />
+				</div>
+			) : (
+				<UserSelectionTable
+					users={allUsers}
+					onSelectionChange={handleSelectionChange}
+					initialSelectedUsers={selectedUsers}
+				/>
+			)}
+		</Modal>
 	);
 };
 

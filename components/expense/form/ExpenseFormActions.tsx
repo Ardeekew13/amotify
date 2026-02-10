@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
+import { Button, Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import FloatingButton from "@/components/common/FloatingButton";
-import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 
 interface ExpenseFormActionsProps {
@@ -27,18 +27,12 @@ export const ExpenseFormActions = ({
 
 		return (
 			<Button
-				type="submit"
-				className="hover:bg-green-800 text-white"
+				type="primary"
+				htmlType="submit"
 				disabled={isLoading}
+				icon={isLoading ? <Spin indicator={<LoadingOutlined spin />} size="small" /> : null}
 			>
-				{isLoading ? (
-					<>
-								<Spinner className="mr-2 h-4 w-4" />
-								{loadingText}
-					</>
-				) : (
-					buttonText
-				)}
+				{isLoading ? loadingText : buttonText}
 			</Button>
 		);
 	};
@@ -55,11 +49,8 @@ export const ExpenseFormActions = ({
 
 	return (
 		<FloatingButton>
-			<div className="flex gap-4 ml-auto">
+			<div style={{ display: 'flex', gap: 16, marginLeft: 'auto' }}>
 				<Button
-					type="button"
-					variant="outline"
-					className="text-gray-700"
 					disabled={upsertLoading || isUploading}
 					onClick={() => router.push("/expense")}
 				>

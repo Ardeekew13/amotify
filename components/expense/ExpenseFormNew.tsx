@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
+import { Spin } from "antd";
 import { useExpenseForm } from "@/hooks/useExpenseForm";
 import { useExpensePermissions } from "@/hooks/useExpensePermissions";
 import { ExpenseFormHeader } from "./form/ExpenseFormHeader";
 import { ExpenseFormFields } from "./form/ExpenseFormFields";
 import { ExpenseFormActions } from "./form/ExpenseFormActions";
 import AddMemberDialog from "@/components/expense/dialog/AddMemberDialog";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const ExpenseForm = () => {
 	const {
@@ -40,7 +40,11 @@ const ExpenseForm = () => {
 	const expense = useMemo(() => data?.getExpenseById?.expense, [data]);
 
 	if (dataLoading || upsertLoading || paidLoading) {
-		return <Skeleton />;
+		return (
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+				<Spin size="large" />
+			</div>
+		);
 	}
 
 	return (

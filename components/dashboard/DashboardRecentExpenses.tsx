@@ -1,25 +1,13 @@
 "use client";
 
 import { Expense, ExpenseStatus } from "@/interface/common/common";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, Table, Tag, Typography } from "antd";
+import type { TableColumnsType } from "antd";
 import dayjs from "dayjs";
 import { formatCurrency } from "@/lib/utils";
-import { Badge } from "../ui/badge";
 import Link from "next/link";
+
+const { Text } = Typography;
 
 interface DashboardRecentExpensesProps {
   expenses: Expense[];
@@ -28,65 +16,78 @@ interface DashboardRecentExpensesProps {
 export const DashboardRecentExpenses = ({
   expenses,
 }: DashboardRecentExpensesProps) => {
+  const columns: TableColumnsType<Expense> = [
+    {
+      title: "Title",
+      dataIndex: "title",
+      key: "title",
+      render: (title: string, record: Expense) => (
+        <Link
+          href={`/expense/manage/${record._id}`}
+          style={{ fontWeight: 500, textDecoration: 'none', color: '#000' }}
+        >
+          {title}
+        </Link>
+      ),
+    },
+    {
+      title: "Paid By",
+      dataIndex: "paidByUser",
+      key: "paidByUser",
+      render: (paidByUser: any) =>
+        `${paidByUser.firstName} ${paidByUser.lastName}`,
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount: number) => formatCurrency(amount),
+    },
+    {
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => dayjs(date).format("MMM DD, YYYY"),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status: ExpenseStatus) => {
+        const isCompleted = status === ExpenseStatus.COMPLETED;
+        return (
+          <Tag variant="solid" color={isCompleted ? "green" : "blue"} 	style={{
+							fontSize: "14px",
+							padding: "4px 8px",
+							fontWeight: 500,
+						}}>
+            {status === ExpenseStatus.AWAITING_PAYMENT
+              ? "Awaiting Payment"
+              : "Completed"}
+          </Tag>
+        );
+      },
+    },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Expenses</CardTitle>
-        <CardDescription>
+    <Card
+      title="Recent Expenses"
+      extra={
+        <Text type="secondary" style={{ fontSize: 14 }}>
           Your 5 most recently updated expenses.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Paid By</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {expenses.length > 0 ? (
-              expenses.map((expense) => (
-                <TableRow key={expense._id}>
-                  <TableCell>
-                    <Link
-                      href={`/expense/manage/${expense._id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {expense.title}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {expense.paidByUser.firstName} {expense.paidByUser.lastName}
-                  </TableCell>
-                  <TableCell>{formatCurrency(expense.amount)}</TableCell>
-                  <TableCell>
-                    {dayjs(expense.createdAt).format("MMM DD, YYYY")}
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        expense.status === "COMPLETED" ? "success" : "info"
-                      }
-                    >
-                      {expense?.status === ExpenseStatus.AWAITING_PAYMENT ?  "Awaiting Payment" : "Completed"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  No recent expenses found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
+        </Text>
+      }
+    >
+      <Table
+        columns={columns}
+        dataSource={expenses}
+        rowKey="_id"
+        pagination={false}
+        locale={{
+          emptyText: "No recent expenses found.",
+        }}
+      />
     </Card>
   );
 };

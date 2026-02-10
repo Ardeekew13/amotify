@@ -1,10 +1,11 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input, Row, Col, Typography } from "antd";
 import MemberSelectTable from "@/components/expense/MemberTable";
 import { ReceiptUpload } from "@/components/expense/ReceiptUpload";
 import { Expense, MemberExpense } from "@/interface/common/common";
 import { FormData } from "@/hooks/useExpenseForm";
 import { useAuth } from "@/hooks/useAuth";
+
+const { Text } = Typography;
 
 interface ExpenseFormFieldsProps {
 	formData: FormData;
@@ -31,9 +32,11 @@ export const ExpenseFormFields = ({
 	const isOwner = expense?.paidBy === user?._id;
 	return (
 		<>
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<div className="space-y-2">
-					<Label htmlFor="title">Title</Label>
+			<Row gutter={16}>
+				<Col xs={24} md={8}>
+					<div style={{ marginBottom: 8 }}>
+						<Text strong>Title</Text>
+					</div>
 					<Input
 						id="title"
 						value={formData.title}
@@ -41,10 +44,12 @@ export const ExpenseFormFields = ({
 						placeholder="Enter expense title"
 						required
 					/>
-				</div>
+				</Col>
 
-				<div className="space-y-2">
-					<Label htmlFor="amount">Amount</Label>
+				<Col xs={24} md={8}>
+					<div style={{ marginBottom: 8 }}>
+						<Text strong>Amount</Text>
+					</div>
 					<Input
 						type="number"
 						id="amount"
@@ -55,11 +60,13 @@ export const ExpenseFormFields = ({
 						}
 						onFocus={(e) => e.target.select()}
 					/>
-				</div>
+				</Col>
 
 				{expense && (
-					<div className="space-y-2">
-						<Label htmlFor="paidByUser">Paid By</Label>
+					<Col xs={24} md={8}>
+						<div style={{ marginBottom: 8 }}>
+							<Text strong>Paid By</Text>
+						</div>
 						<Input
 							id="paidByUser"
 							value={
@@ -70,12 +77,14 @@ export const ExpenseFormFields = ({
 							placeholder="Enter who paid the expense"
 							readOnly
 						/>
-					</div>
+					</Col>
 				)}
-			</div>
+			</Row>
 
-			<div className="flex-1 min-h-0">
-				<Label>Add Members</Label>
+			<div style={{ marginTop: 24 }}>
+				<div style={{ marginBottom: 8 }}>
+					<Text strong>Add Members</Text>
+				</div>
 				<MemberSelectTable
 					selectedUsers={selectedUsers}
 					setSelectedUsers={setSelectedUsers}
@@ -87,8 +96,10 @@ export const ExpenseFormFields = ({
 				/>
 			</div>
 
-			<div className="space-y-2">
-				<Label>Attachment</Label>
+			<div style={{ marginTop: 24 }}>
+				<div style={{ marginBottom: 8 }}>
+					<Text strong>Attachment</Text>
+				</div>
 				<ReceiptUpload
 					value={formData.receiptFile}
 					onChange={(files) => setFormData({ receiptFile: files })}
