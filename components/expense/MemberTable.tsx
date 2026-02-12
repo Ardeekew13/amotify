@@ -517,17 +517,18 @@ const MemberSelectTable = ({
 						return (
 							<div>
 								<List
-									header={<strong>Add-ons:</strong>}
-									dataSource={record.addOns}
-									renderItem={(item, index) => (
-										<List.Item
-											actions={[
-												<XIcon
-													color="red"
-													onClick={() => handleRemoveAddOn(index)}
-												/>,
-											]}
-										>
+								header={<strong>Add-ons:</strong>}
+								dataSource={record.addOns}
+								renderItem={(item, index) => (
+									<List.Item
+										actions={[
+											<XIcon
+												key="remove"
+												color="red"
+												onClick={() => handleRemoveAddOn(index)}
+											/>,
+										]}
+									>
 											<Typography.Text type="success">
 												{index + 1}. {formatCurrency(item)}
 											</Typography.Text>
