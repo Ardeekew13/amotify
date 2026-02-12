@@ -1,13 +1,12 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
 import { GET_DASHBOARD } from "@/app/api/graphql/dashboard";
-import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 import { DashboardActionList } from "@/components/dashboard/DashboardActionList";
 import { DashboardRecentExpenses } from "@/components/dashboard/DashboardRecentExpenses";
-import { useAuthContext } from "@/components/auth/AuthProvider";
-import Loading from "@/components/common/Loading";
-import { Typography, Row, Col } from "antd";
+import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
+import { useQuery } from "@apollo/client";
+import { Col, Row, Spin, Typography } from "antd";
 
 const { Title, Text } = Typography;
 
@@ -23,12 +22,16 @@ export default function DashboardPage() {
 	const isLoading = loading || !user;
 
 	if (isLoading) {
-		return <Loading />;
+		return (
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+				<Spin size="large" />
+			</div>
+		);
 	}
 
 	if (error) {
 		return (
-			<div style={{ textAlign: 'center', padding: '40px 0' }}>
+			<div style={{ textAlign: "center", padding: "40px 0" }}>
 				<Text type="danger">
 					Error loading dashboard data. Please try again later.
 				</Text>
@@ -42,9 +45,11 @@ export default function DashboardPage() {
 	const recentExpenses = dashboardData?.recentExpenses || [];
 
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+		<div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 			<div>
-				<Title level={1} style={{ margin: 0, marginBottom: 4 }}>Dashboard</Title>
+				<Title level={1} style={{ margin: 0, marginBottom: 4 }}>
+					Dashboard
+				</Title>
 				<Text type="secondary">
 					Welcome back, {user?.firstName}! Here&apos;s what&apos;s happening.
 				</Text>

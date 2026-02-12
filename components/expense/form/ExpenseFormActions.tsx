@@ -2,6 +2,7 @@ import { Button, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import FloatingButton from "@/components/common/FloatingButton";
 import { useRouter } from "next/navigation";
+import z from "zod";
 
 interface ExpenseFormActionsProps {
 	permissions: any;
@@ -30,7 +31,11 @@ export const ExpenseFormActions = ({
 				type="primary"
 				htmlType="submit"
 				disabled={isLoading}
-				icon={isLoading ? <Spin indicator={<LoadingOutlined spin />} size="small" /> : null}
+				icon={
+					isLoading ? (
+						<Spin indicator={<LoadingOutlined spin />} size="small" />
+					) : null
+				}
 			>
 				{isLoading ? loadingText : buttonText}
 			</Button>
@@ -41,15 +46,13 @@ export const ExpenseFormActions = ({
 		if (!permissions.canMarkAsPaid) return null;
 
 		return (
-			<Button onClick={onMarkAsPaid}>
-				{permissions.getMarkAsPaidText()}
-			</Button>
+			<Button onClick={onMarkAsPaid}>{permissions.getMarkAsPaidText()}</Button>
 		);
 	};
 
 	return (
 		<FloatingButton>
-			<div style={{ display: 'flex', gap: 16, marginLeft: 'auto' }}>
+			<div style={{ display: "flex", gap: 16, marginLeft: "auto" }}>
 				<Button
 					disabled={upsertLoading || isUploading}
 					onClick={() => router.push("/expense")}

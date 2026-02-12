@@ -1,17 +1,18 @@
-import { Input, Row, Col, Typography } from "antd";
 import MemberSelectTable from "@/components/expense/MemberTable";
 import { ReceiptUpload } from "@/components/expense/ReceiptUpload";
-import { Expense, MemberExpense } from "@/interface/common/common";
-import { FormData } from "@/hooks/useExpenseForm";
-import { useAuth } from "@/hooks/useAuth";
+import { FormData, UpdatedMemberExpense } from "@/hooks/useExpenseForm";
+import { Expense } from "@/interface/common/common";
+import { Col, Input, Row, Typography } from "antd";
 
 const { Text } = Typography;
 
 interface ExpenseFormFieldsProps {
 	formData: FormData;
 	setFormData: (updates: Partial<FormData>) => void;
-	selectedUsers: MemberExpense[];
-	setSelectedUsers: React.Dispatch<React.SetStateAction<MemberExpense[]>>;
+	selectedUsers: UpdatedMemberExpense[];
+	setSelectedUsers: React.Dispatch<
+		React.SetStateAction<UpdatedMemberExpense[]>
+	>;
 	onOpenDialog: () => void;
 	onRemoveMember: (userId: string) => void;
 	permissions: any;
@@ -28,8 +29,6 @@ export const ExpenseFormFields = ({
 	permissions,
 	expense,
 }: ExpenseFormFieldsProps) => {
-	const { user } = useAuth();
-	const isOwner = expense?.paidBy === user?._id;
 	return (
 		<>
 			<Row gutter={16}>
@@ -107,7 +106,7 @@ export const ExpenseFormFields = ({
 					multiple={true}
 					maxFiles={5}
 					someoneAlreadyPaid={permissions.someoneAlreadyPaid ?? false}
-					isOwner={isOwner}
+					record={expense || null}
 				/>
 			</div>
 		</>

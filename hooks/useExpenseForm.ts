@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { toast } from "sonner";
 import {
 	CREATE_EXPENSE,
 	GET_EXPENSE_BY_ID,
@@ -16,6 +15,7 @@ import {
 import { User } from "@/interface/userInterface";
 import { removeDuplicateReceipts } from "@/lib/receiptUtils";
 import { useAuthContext } from "@/components/auth/AuthProvider";
+import { message } from "antd";
 
 export interface FormData {
 	title: string;
@@ -27,6 +27,10 @@ export interface FormData {
 	expenseId: string | null;
 	paidBy: string | null;
 	paidByUser: User | null;
+}
+
+export interface UpdatedMemberExpense extends MemberExpense {
+	addOns?: number[];
 }
 
 export const useExpenseForm = () => {
@@ -47,7 +51,9 @@ export const useExpenseForm = () => {
 		paidByUser: null,
 	});
 
-	const [selectedUsers, setSelectedUsers] = useState<MemberExpense[]>([]);
+	const [selectedUsers, setSelectedUsers] = useState<UpdatedMemberExpense[]>(
+		[],
+	);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
 
@@ -126,11 +132,11 @@ export const useExpenseForm = () => {
 			if (result.success) {
 				return { url: result.url, publicId: result.publicId };
 			} else {
-				toast.error(result.error || "Failed to upload receipt");
+				message.error(result.error || "Failed to upload receipt");
 				return null;
 			}
 		} catch (error) {
-			toast.error("Failed to upload receipt");
+			message.error("Failed to upload receipt");
 			return null;
 		}
 	};
@@ -138,23 +144,23 @@ export const useExpenseForm = () => {
 	// Form validation
 	const validateForm = () => {
 		if (!formData.title.trim()) {
-			toast.error("Title is required");
+			message.error("Title is required");
 			return false;
 		}
 
 		if (formData.amount <= 0) {
-			toast.error("Amount must be greater than 0");
+			message.error("Amount must be greater than 0");
 			return false;
 		}
 
 		if (selectedUsers.length === 0) {
-			toast.error("Please add at least one member");
+			message.error("Please add at least one member");
 			return false;
 		}
 
 		const totalSplit = selectedUsers.reduce((sum, m) => sum + m.amount, 0);
 		if (Math.abs(totalSplit - formData.amount) > 0.01) {
-			toast.error(
+			message.error(
 				`Split total ($${totalSplit.toFixed(2)}) must equal expense amount ($${formData.amount.toFixed(2)})`,
 			);
 			return false;
@@ -224,17 +230,21 @@ export const useExpenseForm = () => {
 			});
 
 			if (result?.createExpense?.success) {
-				toast.success(result.createExpense.message);
+				message.success(result.createExpense.message);
 				router.push(`/expense/manage/${result.createExpense.expense?._id}`);
+				setFormData({
+					existingReceiptUrl: [],
+					existingReceiptPublicId: [],
+				});
 				return;
 			} else {
-				toast.error(
+				message.error(
 					result?.createExpense?.message || "Failed to create expense",
 				);
 			}
 		} catch (error) {
 			console.error("Create expense error:", error);
-			toast.error("Failed to create expense");
+			message.error("Failed to create expense");
 		} finally {
 			setIsUploading(false);
 		}
@@ -274,11 +284,11 @@ export const useExpenseForm = () => {
 					};
 				}
 
-				toast.success("Member removed and amounts recalculated");
+				message.success("Member removed and amounts recalculated");
 				return updatedMembers;
 			}
 
-			toast.success("Member removed");
+			message.success("Member removed");
 			return remainingMembers;
 		});
 	};
@@ -302,14 +312,16 @@ export const useExpenseForm = () => {
 
 			const data = result.data as any;
 			if (data?.markSplitAsPaid?.success) {
-				toast.success(data.markSplitAsPaid.message);
+				message.success(data.markSplitAsPaid.message);
 				refetch();
 			} else {
-				toast.error(data?.markSplitAsPaid?.message || "Failed to mark as paid");
+				message.error(
+					data?.markSplitAsPaid?.message || "Failed to mark as paid",
+				);
 			}
 		} catch (error) {
 			console.error("Mark as Paid error:", error);
-			toast.error("Failed to mark as paid");
+			message.error("Failed to mark as paid");
 		}
 	};
 

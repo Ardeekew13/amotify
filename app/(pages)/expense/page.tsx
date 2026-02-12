@@ -1,8 +1,7 @@
 "use client";
 import { GET_EXPENSES } from "@/app/api/graphql/expense";
-import Loading from "@/components/common/Loading";
 import ExpenseTable from "@/components/expense/ExpenseTable";
-import { Button, Tabs, Typography } from "antd";
+import { Button, Spin, Tabs, Typography } from "antd";
 import { GetExpenses } from "@/interface/common/common";
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
@@ -46,7 +45,11 @@ export default function ExpensePage() {
 	}, [data, loading, handleAdd]);
 
 	if (isNavigating) {
-		return <Loading />;
+		return (
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+				<Spin size="large" />
+			</div>
+		);
 	}
 	console.log("isNavigating", isNavigating);
 	return (

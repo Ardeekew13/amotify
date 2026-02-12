@@ -1,9 +1,10 @@
 "use client";
 
-import { Form, Input, Button, Typography, Space, App, Row, Col } from "antd";
+import { Form, Input, Button, Typography, Space, App, Row, Col, Spin } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/AuthProvider";
+import { useState } from "react";
 
 const { Title, Text, Link } = Typography;
 
@@ -20,6 +21,7 @@ export function SignupForm() {
 	const router = useRouter();
 	const { signup, isLoading } = useAuthContext();
 	const { message } = App.useApp();
+	const [signupSuccess, setSignupSuccess] = useState(false);
 
 	const onFinish = async (values: SignupFormData) => {
 		try {
@@ -32,6 +34,7 @@ export function SignupForm() {
 
 			if (result?.data?.createUser?.success) {
 				message.success("Account created successfully!");
+				setSignupSuccess(true);
 				router.push("/dashboard");
 			} else {
 				message.error(
@@ -42,6 +45,15 @@ export function SignupForm() {
 			message.error(err.message || "An error occurred");
 		}
 	};
+
+	// Show loading spinner when creating account or redirecting
+	if (isLoading || signupSuccess) {
+		return (
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+				<Spin size="large" />
+			</div>
+		);
+	}
 
 	return (
 		<Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -60,7 +72,6 @@ export function SignupForm() {
 				onFinish={onFinish}
 				layout="vertical"
 				size="large"
-				disabled={isLoading}
 			>
 				<Row gutter={16}>
 					<Col span={12}>
@@ -128,8 +139,8 @@ export function SignupForm() {
 				</Form.Item>
 
 				<Form.Item>
-					<Button type="primary" htmlType="submit" loading={isLoading} block>
-						{isLoading ? "Creating account..." : "Create account"}
+					<Button type="primary" htmlType="submit" block>
+						Create account
 					</Button>
 				</Form.Item>
 			</Form>

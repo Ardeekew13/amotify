@@ -1,9 +1,9 @@
 "use client";
 
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import { useRouter, usePathname } from "next/navigation";
+import { Spin } from "antd";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Spinner } from "../ui/spinner";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 	const { status } = useAuthContext();
@@ -19,8 +19,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 	if (status === "loading") {
 		return (
-			<div className="flex h-screen items-center justify-center">
-				<Spinner />
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+				<Spin size="large" />
 			</div>
 		);
 	}

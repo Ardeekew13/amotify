@@ -26,13 +26,13 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			title: "Title",
 			dataIndex: "title",
 			key: "title",
-			width: 200,
+			width: 350,
 		},
 		{
 			title: "Amount",
 			dataIndex: "amount",
 			key: "amount",
-			width: 150,
+			width: 300,
 			render: (amount: number) => {
 				const formatted = new Intl.NumberFormat("en-US", {
 					style: "currency",
@@ -45,7 +45,7 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			title: "Paid By",
 			dataIndex: "paidByUser",
 			key: "paidByUser",
-			width: 150,
+			width: 300,
 			render: (paidByUser: any) =>
 				`${paidByUser?.firstName || ""} ${paidByUser?.lastName || ""}`,
 		},
@@ -53,7 +53,7 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			title: "Date",
 			dataIndex: "createdAt",
 			key: "createdAt",
-			width: 150,
+			width: 200,
 			render: (createdAt: string) => {
 				const date = dayjs(createdAt);
 				return (
@@ -70,7 +70,7 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			title: "Status",
 			dataIndex: "status",
 			key: "status",
-			width: 180,
+			width: 40,
 			align: "center",
 			render: (status: ExpenseStatus) => {
 				const isAwaiting = status === ExpenseStatus.AWAITING_PAYMENT;
@@ -90,9 +90,9 @@ const ExpenseTable = ({ expenses, loading, onAdd }: IExpenseProps) => {
 			},
 		},
 		{
-			title: "",
+			title: "Actions",
 			key: "actions",
-			width: 60,
+			width: 20,
 			render: (_, record) => (
 				<Dropdown menu={{ items: getMenuItems(record) }} trigger={["click"]}>
 					<Button type="text" icon={<MoreOutlined />} />

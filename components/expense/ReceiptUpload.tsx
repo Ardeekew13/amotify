@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { Plus, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { Expense } from "@/interface/common/common";
+import { useAuthContext } from "../auth/AuthProvider";
 
 const { Text } = Typography;
 
@@ -16,7 +18,7 @@ interface ReceiptUploadProps {
 	multiple?: boolean;
 	maxFiles?: number;
 	someoneAlreadyPaid: boolean; // Optional prop to indicate if someone has already paid
-	isOwner: boolean; //Prop to know if the user can add or delete the attachments
+	record: Expense | null; //Prop to know if the user can add or delete the attachments
 }
 
 export function ReceiptUpload({
@@ -26,10 +28,12 @@ export function ReceiptUpload({
 	multiple = false,
 	maxFiles = 5,
 	someoneAlreadyPaid,
-	isOwner,
+	record,
 }: ReceiptUploadProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const { message } = App.useApp();
+	const { user } = useAuthContext();
+	const isOwner = record ? record?.paidBy === user?._id : true;
 
 	// Normalize existing URL to array with backward compatibility
 	const [existingReceipts, setExistingReceipts] = useState<string[]>(
@@ -139,25 +143,23 @@ export function ReceiptUpload({
 		window.open(url, "_blank");
 	};
 
-	const handleInputClick = () => {};
-
 	const totalReceipts = existingReceipts.length;
 	const canAddMore = multiple ? totalReceipts < maxFiles : totalReceipts === 0;
 
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+		<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 			<input
 				ref={fileInputRef}
 				type="file"
 				accept="image/jpeg,image/jpg,image/png"
 				multiple={multiple}
 				onChange={handleFileChange}
-				style={{ display: 'none' }}
+				style={{ display: "none" }}
 			/>
 
 			{/* Receipts Grid */}
 			{existingReceipts.length > 0 && (
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+				<div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
 					<Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>
 						Receipt{existingReceipts.length > 1 ? "s" : ""}
 					</Text>
@@ -189,14 +191,14 @@ export function ReceiptUpload({
 										size="small"
 										icon={<X className="h-3 w-3" />}
 										style={{
-											position: 'absolute',
+											position: "absolute",
 											top: 4,
 											right: 4,
 											height: 24,
 											width: 24,
 											padding: 0,
 											opacity: 0,
-											transition: 'opacity 0.2s'
+											transition: "opacity 0.2s",
 										}}
 										className="group-hover:opacity-100"
 										onClick={(e) => {
@@ -212,14 +214,20 @@ export function ReceiptUpload({
 			)}
 
 			{/* Upload Button */}
-			{canAddMore && isOwner && (
+			{isOwner && (
 				<Button
 					block
 					onClick={() => {
-						handleInputClick();
 						fileInputRef.current?.click();
 					}}
-					icon={totalReceipts === 0 ? <Upload className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+					disabled={!canAddMore || someoneAlreadyPaid}
+					icon={
+						totalReceipts === 0 ? (
+							<Upload className="h-4 w-4" />
+						) : (
+							<Plus className="h-4 w-4" />
+						)
+					}
 				>
 					{totalReceipts === 0
 						? `Upload Receipt${multiple ? "s" : ""}`
@@ -228,7 +236,7 @@ export function ReceiptUpload({
 			)}
 
 			{!canAddMore && multiple && (
-				<Text type="secondary" style={{ fontSize: 14, textAlign: 'center' }}>
+				<Text type="secondary" style={{ fontSize: 14, textAlign: "center" }}>
 					Maximum {maxFiles} receipts reached
 				</Text>
 			)}

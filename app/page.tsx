@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/AuthProvider";
-import Loading from "@/components/common/Loading";
+import { Spin } from "antd";
 
 export default function HomePage() {
 	const { status } = useAuthContext();
@@ -18,8 +18,8 @@ export default function HomePage() {
 	}, [status, router]);
 
 	return (
-		<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-			<Loading />
+		<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+			<Spin size="large" />
 		</div>
 	);
 }

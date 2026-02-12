@@ -1,4 +1,6 @@
-import { Badge } from "@/components/ui/badge";
+import { Tag, Typography } from "antd";
+
+const { Title, Text } = Typography;
 
 interface ExpenseFormHeaderProps {
 	expense?: any;
@@ -6,20 +8,27 @@ interface ExpenseFormHeaderProps {
 }
 
 export const ExpenseFormHeader = ({ expense, permissions }: ExpenseFormHeaderProps) => {
+	const getBadgeColor = () => {
+		const variant = permissions.getBadgeVariant();
+		if (variant === "default") return "default";
+		if (variant === "secondary") return "blue";
+		return "default";
+	};
+
 	return (
-		<div className="flex items-center justify-between mb-6">
+		<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight">
+				<Title level={1} style={{ margin: 0, marginBottom: 4 }}>
 					{expense ? "Edit Expense" : "Add Expense"}
-				</h1>
-				<p className="text-muted-foreground">
+				</Title>
+				<Text type="secondary">
 					Manage and track your shared expenses{" "}
 					{!permissions.isNewExpense && (
-						<Badge variant={permissions.getBadgeVariant()}>
+						<Tag color={getBadgeColor()} style={{ marginLeft: 8 }}>
 							{permissions.getBadgeText()}
-						</Badge>
+						</Tag>
 					)}
-				</p>
+				</Text>
 			</div>
 		</div>
 	);

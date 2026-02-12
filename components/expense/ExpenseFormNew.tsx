@@ -41,7 +41,14 @@ const ExpenseForm = () => {
 
 	if (dataLoading || upsertLoading || paidLoading) {
 		return (
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+					minHeight: "60vh",
+				}}
+			>
 				<Spin size="large" />
 			</div>
 		);

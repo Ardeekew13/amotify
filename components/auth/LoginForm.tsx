@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Input, Button, Typography, Space, App } from "antd";
+import { Form, Input, Button, Typography, Space, App, Spin } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/AuthProvider";
@@ -13,7 +13,11 @@ interface LoginFormData {
 	password: string;
 }
 
-export function LoginForm({ callbackUrl }: { callbackUrl?: string | null }) {
+interface LoginFormProps {
+	callbackUrl?: string;
+}
+
+export function LoginForm({ callbackUrl = "/dashboard" }: LoginFormProps) {
 	const [form] = Form.useForm();
 	const router = useRouter();
 	const { login, isLoading, status } = useAuthContext();
@@ -23,17 +27,16 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string | null }) {
 	// Handle redirect after successful login and status update
 	useEffect(() => {
 		if (loginSuccess && status === "authenticated") {
-			router.push(callbackUrl || "/dashboard");
+			router.push(callbackUrl);
 		}
 	}, [status, loginSuccess, router, callbackUrl]);
 
 	const onFinish = async (values: LoginFormData) => {
 		try {
 			const result = await login(values.userName, values.password);
-
+			setLoginSuccess(true);
 			if (result?.data?.login?.success) {
 				message.success("Login successful!");
-				setLoginSuccess(true);
 			} else {
 				message.error(result?.data?.login?.message || "Invalid credentials");
 			}
@@ -41,6 +44,15 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string | null }) {
 			message.error(err.message || "An error occurred");
 		}
 	};
+
+	// Show loading spinner when authenticating or redirecting
+	if (isLoading || loginSuccess) {
+		return (
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+				<Spin size="large" />
+			</div>
+		);
+	}
 
 	return (
 		<Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -59,7 +71,6 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string | null }) {
 				onFinish={onFinish}
 				layout="vertical"
 				size="large"
-				disabled={isLoading}
 			>
 				<Form.Item
 					name="userName"
@@ -87,8 +98,12 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string | null }) {
 				</Form.Item>
 
 				<Form.Item>
-					<Button type="primary" htmlType="submit" loading={isLoading} block>
-						{isLoading ? "Logging in..." : "Login"}
+					<Button
+						type="primary"
+						htmlType="submit"
+						block
+					>
+						Login
 					</Button>
 				</Form.Item>
 			</Form>
