@@ -34,9 +34,10 @@ export function LoginForm({ callbackUrl = "/dashboard" }: LoginFormProps) {
 	const onFinish = async (values: LoginFormData) => {
 		try {
 			const result = await login(values.userName, values.password);
-			setLoginSuccess(true);
+
 			if (result?.data?.login?.success) {
 				message.success("Login successful!");
+				setLoginSuccess(true);
 			} else {
 				message.error(result?.data?.login?.message || "Invalid credentials");
 			}
