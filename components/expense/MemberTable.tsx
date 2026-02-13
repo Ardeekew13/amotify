@@ -66,11 +66,12 @@ const MemberSelectTable = ({
 
 		// Use newSplitState instead of isSplitEvenly (state hasn't updated yet)
 		if (newSplitState) {
+			// Find members who already have manually set amounts (non-zero and not from previous split)
 			const hasAmountMembers = selectedUsers.filter(
-				(user) => (user.amount ?? 0) !== 0 || (user.splitPercentage ?? 0) !== 0,
+				(member) => (member.amount ?? 0) > 0
 			);
 
-			if (hasAmountMembers.length !== 0) {
+			if (hasAmountMembers.length > 0 && hasAmountMembers.length < selectedUsers.length) {
 				// Scenario: Some members already have amounts set
 				const totalPaid = hasAmountMembers.reduce(
 					(sum, member) => sum + (member.amount || 0),
@@ -79,27 +80,45 @@ const MemberSelectTable = ({
 
 				const remainingAmount = totalAmount - totalPaid;
 				const membersToSplit = selectedUsers.filter(
-					(user) =>
-						(user.amount ?? 0) === 0 && (user.splitPercentage ?? 0) === 0,
+					(member) => (member.amount ?? 0) === 0
 				);
 
 				if (membersToSplit.length > 0 && remainingAmount > 0) {
 					const splitAmount = remainingAmount / membersToSplit.length;
+					const roundedAmount = roundToTwoDecimals(splitAmount);
 
 					// Create updated members with split amounts
 					let updatedMembers = selectedUsers.map((member) => {
-						if (
-							(member.amount ?? 0) === 0 &&
-							(member.splitPercentage ?? 0) === 0
-						) {
+						if ((member.amount ?? 0) === 0) {
 							return {
 								...member,
-								amount: roundToTwoDecimals(splitAmount),
+								amount: roundedAmount,
 								splitPercentage: 0, // Will be calculated below
 							};
 						}
 						return member;
 					});
+
+					// Calculate the total after rounding
+					const totalAfterRounding = updatedMembers.reduce(
+						(sum, member) => sum + (member.amount || 0),
+						0
+					);
+
+					// Distribute the rounding difference to the last member
+					const difference = roundToTwoDecimals(totalAmount - totalAfterRounding);
+					if (difference !== 0) {
+						// Find the last member who was assigned the split amount
+						const lastSplitMemberIndex = updatedMembers.reduce((lastIndex, member, index) => {
+							return (member.amount === roundedAmount && (hasAmountMembers.findIndex(m => m.user._id === member.user._id) === -1)) ? index : lastIndex;
+						}, -1);
+
+						if (lastSplitMemberIndex !== -1) {
+							updatedMembers[lastSplitMemberIndex].amount = roundToTwoDecimals(
+								updatedMembers[lastSplitMemberIndex].amount + difference
+							);
+						}
+					}
 
 					// Calculate proper percentages that add up to 100%
 					const allAmounts = updatedMembers.map((m) => m.amount);
@@ -201,7 +220,8 @@ const MemberSelectTable = ({
 		// Only calculate percentage if totalAmount is valid
 		const paidPercentage =
 			totalAmount > 0 ? roundToTwoDecimals((amount / totalAmount) * 100) : 0;
-
+		console.log("paidPercentage", paidPercentage);
+		console.log("amount", amount);
 		setSelectedUsers((prev) =>
 			prev.map((row) =>
 				row.user._id === userId
@@ -303,6 +323,8 @@ const MemberSelectTable = ({
 						}
 						min={0}
 						max={100}
+						precision={2}
+						step={0.01}
 						style={{ width: "100%" }}
 					/>
 				);
@@ -320,8 +342,8 @@ const MemberSelectTable = ({
 						onChange={(value) =>
 							handleAmountChange(record.user._id, value || 0)
 						}
-						min={0}
-						max={100}
+						precision={2}
+						step={0.01}
 						style={{ width: "100%" }}
 					/>
 					<Button
@@ -517,18 +539,18 @@ const MemberSelectTable = ({
 						return (
 							<div>
 								<List
-								header={<strong>Add-ons:</strong>}
-								dataSource={record.addOns}
-								renderItem={(item, index) => (
-									<List.Item
-										actions={[
-											<XIcon
-												key="remove"
-												color="red"
-												onClick={() => handleRemoveAddOn(index)}
-											/>,
-										]}
-									>
+									header={<strong>Add-ons:</strong>}
+									dataSource={record.addOns}
+									renderItem={(item, index) => (
+										<List.Item
+											actions={[
+												<XIcon
+													key="remove"
+													color="red"
+													onClick={() => handleRemoveAddOn(index)}
+												/>,
+											]}
+										>
 											<Typography.Text type="success">
 												{index + 1}. {formatCurrency(item)}
 											</Typography.Text>

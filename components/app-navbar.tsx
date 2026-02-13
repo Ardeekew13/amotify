@@ -105,7 +105,7 @@ export function AppNavbar() {
 							justifyContent: 'flex-end'
 						}}
 					>
-						<Avatar size={32} style={{ backgroundColor: '#22c55e' }}>
+						<Avatar size={36} style={{ backgroundColor: '#22c55e' }}>
 							{user?.firstName?.[0]}{user?.lastName?.[0]}
 						</Avatar>
 						<Text>{user.firstName} {user.lastName}</Text>
