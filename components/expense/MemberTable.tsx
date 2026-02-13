@@ -24,10 +24,10 @@ import {
 	Tag,
 	Typography,
 } from "antd";
+import { XIcon } from "lucide-react";
 import { useState } from "react";
 import { useAuthContext } from "../auth/AuthProvider";
 import AddMoreItems from "./dialog/AddMoreItems";
-import { MessageCircleX, XIcon } from "lucide-react";
 
 interface IProps {
 	selectedUsers: UpdatedMemberExpense[];
@@ -39,6 +39,7 @@ interface IProps {
 	onRemoveMember: (userId: string) => void;
 	paidBy?: string;
 	expenseId: string;
+	refetch?: () => void;
 }
 
 const MemberSelectTable = ({
@@ -49,12 +50,42 @@ const MemberSelectTable = ({
 	onRemoveMember,
 	paidBy,
 	expenseId,
+	refetch,
 }: IProps) => {
 	const [isSplitEvenly, setIsSplitEvenly] = useState<boolean>(false);
 	const { user } = useAuth();
 	const { message } = App.useApp();
 	const [isOpenModal, setIsOpenModal] = useState(false);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+	const [markAsPaid, { loading: paidLoading }] = useMutation(MARK_AS_PAID);
+
+	const handleMarkAsPaid = async (memberId: string) => {
+		try {
+			const result = await markAsPaid({
+				variables: {
+					input: {
+						expenseId,
+						memberId: memberId,
+						type: "PAID",
+					},
+				},
+			});
+
+			const data = result.data as any;
+			if (data?.markSplitAsPaid?.success) {
+				message.success(data.markSplitAsPaid.message);
+				refetch?.();
+			} else {
+				message.error(
+					data?.markSplitAsPaid?.message || "Failed to mark as paid",
+				);
+			}
+		} catch (error) {
+			console.error("Mark as Paid error:", error);
+			message.error("Failed to mark as paid");
+		}
+	};
 
 	const handleSplitEvenly = () => {
 		if (totalAmount <= 0) {
@@ -68,10 +99,13 @@ const MemberSelectTable = ({
 		if (newSplitState) {
 			// Find members who already have manually set amounts (non-zero and not from previous split)
 			const hasAmountMembers = selectedUsers.filter(
-				(member) => (member.amount ?? 0) > 0
+				(member) => (member.amount ?? 0) > 0,
 			);
 
-			if (hasAmountMembers.length > 0 && hasAmountMembers.length < selectedUsers.length) {
+			if (
+				hasAmountMembers.length > 0 &&
+				hasAmountMembers.length < selectedUsers.length
+			) {
 				// Scenario: Some members already have amounts set
 				const totalPaid = hasAmountMembers.reduce(
 					(sum, member) => sum + (member.amount || 0),
@@ -80,7 +114,7 @@ const MemberSelectTable = ({
 
 				const remainingAmount = totalAmount - totalPaid;
 				const membersToSplit = selectedUsers.filter(
-					(member) => (member.amount ?? 0) === 0
+					(member) => (member.amount ?? 0) === 0,
 				);
 
 				if (membersToSplit.length > 0 && remainingAmount > 0) {
@@ -102,20 +136,30 @@ const MemberSelectTable = ({
 					// Calculate the total after rounding
 					const totalAfterRounding = updatedMembers.reduce(
 						(sum, member) => sum + (member.amount || 0),
-						0
+						0,
 					);
 
 					// Distribute the rounding difference to the last member
-					const difference = roundToTwoDecimals(totalAmount - totalAfterRounding);
+					const difference = roundToTwoDecimals(
+						totalAmount - totalAfterRounding,
+					);
 					if (difference !== 0) {
 						// Find the last member who was assigned the split amount
-						const lastSplitMemberIndex = updatedMembers.reduce((lastIndex, member, index) => {
-							return (member.amount === roundedAmount && (hasAmountMembers.findIndex(m => m.user._id === member.user._id) === -1)) ? index : lastIndex;
-						}, -1);
+						const lastSplitMemberIndex = updatedMembers.reduce(
+							(lastIndex, member, index) => {
+								return member.amount === roundedAmount &&
+									hasAmountMembers.findIndex(
+										(m) => m.user._id === member.user._id,
+									) === -1
+									? index
+									: lastIndex;
+							},
+							-1,
+						);
 
 						if (lastSplitMemberIndex !== -1) {
 							updatedMembers[lastSplitMemberIndex].amount = roundToTwoDecimals(
-								updatedMembers[lastSplitMemberIndex].amount + difference
+								updatedMembers[lastSplitMemberIndex].amount + difference,
 							);
 						}
 					}
@@ -220,8 +264,7 @@ const MemberSelectTable = ({
 		// Only calculate percentage if totalAmount is valid
 		const paidPercentage =
 			totalAmount > 0 ? roundToTwoDecimals((amount / totalAmount) * 100) : 0;
-		console.log("paidPercentage", paidPercentage);
-		console.log("amount", amount);
+
 		setSelectedUsers((prev) =>
 			prev.map((row) =>
 				row.user._id === userId
@@ -401,6 +444,7 @@ const MemberSelectTable = ({
 			align: "center",
 			width: 120,
 			render: (_, record) => {
+				console.log("Rendering actions for record:", record);
 				if (!isPaidByCurrentUser) {
 					return null;
 				}
@@ -425,6 +469,20 @@ const MemberSelectTable = ({
 								Receive Payment
 							</Button>
 						)}
+						{paidBy === currentUser?._id &&
+							record.status != MemberExpenseStatus.AWAITING_CONFIRMATION &&
+							record.status != MemberExpenseStatus.PAID && (
+								<Button
+									type="default"
+									size="small"
+									onClick={(e) => {
+										e.stopPropagation();
+										handleMarkAsPaid(record?.user?._id || "");
+									}}
+								>
+									Mark As Paid
+								</Button>
+							)}
 						<Button
 							danger
 							size="small"

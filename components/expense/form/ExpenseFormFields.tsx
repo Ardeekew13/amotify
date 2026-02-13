@@ -28,6 +28,7 @@ export const ExpenseFormFields = ({
 	onRemoveMember,
 	permissions,
 	expense,
+
 }: ExpenseFormFieldsProps) => {
 	return (
 		<>
