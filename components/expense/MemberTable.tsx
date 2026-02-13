@@ -395,15 +395,16 @@ const MemberSelectTable = ({
 				);
 			},
 		},
-	];
-
-	if (isPaidByCurrentUser) {
-		columns.push({
+		{
 			title: <div style={{ textAlign: "center" }}>Actions</div>,
 			key: "actions",
 			align: "center",
 			width: 120,
 			render: (_, record) => {
+				if (!isPaidByCurrentUser) {
+					return null;
+				}
+
 				const isMemberRow = record.user?._id !== currentUser?._id;
 				const canMarkAsPaid =
 					isMemberRow &&
@@ -437,8 +438,8 @@ const MemberSelectTable = ({
 					</div>
 				);
 			},
-		});
-	}
+		},
+	];
 
 	const totalSplit = selectedUsers.reduce(
 		(sum, item) => sum + (item.splitPercentage || 0),

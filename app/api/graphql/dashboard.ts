@@ -44,6 +44,13 @@ export const GET_DASHBOARD = gql`
 						firstName
 						lastName
 					}
+					split {
+						user {
+							_id
+						}
+						amount
+						status
+					}
 				}
 			}
 		}

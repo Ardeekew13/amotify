@@ -35,11 +35,6 @@ export function UserSelectionTable({
 			dataIndex: "lastName",
 			key: "lastName",
 		},
-		{
-			title: "Username",
-			dataIndex: "userName",
-			key: "userName",
-		},
 	];
 
 	const rowSelection = {

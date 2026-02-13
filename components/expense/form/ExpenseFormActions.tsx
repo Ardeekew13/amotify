@@ -46,7 +46,9 @@ export const ExpenseFormActions = ({
 		if (!permissions.canMarkAsPaid) return null;
 
 		return (
-			<Button onClick={onMarkAsPaid}>{permissions.getMarkAsPaidText()}</Button>
+			<Button type="primary" onClick={onMarkAsPaid}>
+				{permissions.getMarkAsPaidText()}
+			</Button>
 		);
 	};
 
