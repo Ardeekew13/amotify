@@ -305,14 +305,12 @@ const MemberSelectTable = ({
 	};
 
 	const handleOpenAdd = (userId: string, itemType: string) => {
-		console.log("Opening modal with type:", itemType);
 		setSelectedUserId(userId);
 		setType(itemType);
 		setIsOpenModal(true);
 	};
 
 	const handleAddItems = (amountInputted: number) => {
-		console.log("handleAddItems called with type:", type);
 		if (!selectedUserId) return;
 		if (type === "DEDUCTION" && amountInputted <= 0) {
 			message.error("Deduction amount must be greater than 0.");
@@ -391,7 +389,7 @@ const MemberSelectTable = ({
 				: "Deduction added successfully",
 		);
 	};
-	console.log("formData", formData.amount);
+
 	const isPaidByCurrentUser = paidBy === currentUser?._id;
 
 	const columns: TableColumnsType<MemberExpense> = [
@@ -629,7 +627,6 @@ const MemberSelectTable = ({
 			align: "center",
 			width: 120,
 			render: (_, record) => {
-				console.log("Rendering actions for record:", record);
 				if (!isPaidByCurrentUser) {
 					return null;
 				}
@@ -693,16 +690,6 @@ const MemberSelectTable = ({
 		0,
 	);
 
-	if (loading) {
-		return (
-			<Card title="Members">
-				<div style={{ textAlign: "center", padding: 32 }}>
-					Processing payment...
-				</div>
-			</Card>
-		);
-	}
-
 	return (
 		<Card
 			title="Members"
@@ -734,7 +721,7 @@ const MemberSelectTable = ({
 				dataSource={selectedUsers}
 				rowKey={(record) => record.user._id}
 				pagination={false}
-				loading={paidLoading}
+				loading={paidLoading || loading}
 				expandable={{
 					expandedRowRender: (record) => {
 						if (!Array.isArray(record.addOns) || record.addOns.length === 0) {
