@@ -1,7 +1,7 @@
 import MemberSelectTable from "@/components/expense/MemberTable";
 import { ReceiptUpload } from "@/components/expense/ReceiptUpload";
-import { FormData, UpdatedMemberExpense } from "@/hooks/useExpenseForm";
-import { Expense } from "@/interface/common/common";
+import { FormData } from "@/hooks/useExpenseForm";
+import { Expense, MemberExpense } from "@/interface/common/common";
 import { Col, Input, Row, Typography } from "antd";
 
 const { Text } = Typography;
@@ -9,10 +9,8 @@ const { Text } = Typography;
 interface ExpenseFormFieldsProps {
 	formData: FormData;
 	setFormData: (updates: Partial<FormData>) => void;
-	selectedUsers: UpdatedMemberExpense[];
-	setSelectedUsers: React.Dispatch<
-		React.SetStateAction<UpdatedMemberExpense[]>
-	>;
+	selectedUsers: MemberExpense[];
+	setSelectedUsers: React.Dispatch<React.SetStateAction<MemberExpense[]>>;
 	onOpenDialog: () => void;
 	onRemoveMember: (userId: string) => void;
 	permissions: any;
@@ -28,7 +26,6 @@ export const ExpenseFormFields = ({
 	onRemoveMember,
 	permissions,
 	expense,
-
 }: ExpenseFormFieldsProps) => {
 	return (
 		<>
@@ -93,6 +90,8 @@ export const ExpenseFormFields = ({
 					onRemoveMember={onRemoveMember}
 					paidBy={formData.paidBy ?? ""}
 					expenseId={formData.expenseId ?? ""}
+					setFormData={setFormData}
+					formData={formData}
 				/>
 			</div>
 

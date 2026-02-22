@@ -2,8 +2,8 @@
 
 import { MARK_AS_PAID } from "@/app/api/graphql/expense";
 import { useAuth } from "@/hooks/useAuth";
-import { UpdatedMemberExpense } from "@/hooks/useExpenseForm";
-import { MemberExpenseStatus } from "@/interface/common/common";
+import { FormData } from "@/hooks/useExpenseForm";
+import { MemberExpense, MemberExpenseStatus } from "@/interface/common/common";
 import {
 	distributePercentages,
 	formatCurrency,
@@ -28,18 +28,19 @@ import { XIcon } from "lucide-react";
 import { useState } from "react";
 import { useAuthContext } from "../auth/AuthProvider";
 import AddMoreItems from "./dialog/AddMoreItems";
+import ShowQRCode from "./dialog/ShowQRCode";
 
 interface IProps {
-	selectedUsers: UpdatedMemberExpense[];
-	setSelectedUsers: React.Dispatch<
-		React.SetStateAction<UpdatedMemberExpense[]>
-	>;
+	selectedUsers: MemberExpense[];
+	setSelectedUsers: React.Dispatch<React.SetStateAction<MemberExpense[]>>;
 	onOpenDialog: () => void;
 	totalAmount?: number;
 	onRemoveMember: (userId: string) => void;
 	paidBy?: string;
 	expenseId: string;
 	refetch?: () => void;
+	formData: FormData;
+	setFormData: (updates: Partial<FormData>) => void;
 }
 
 const MemberSelectTable = ({
@@ -51,12 +52,15 @@ const MemberSelectTable = ({
 	paidBy,
 	expenseId,
 	refetch,
+	formData,
+	setFormData,
 }: IProps) => {
 	const [isSplitEvenly, setIsSplitEvenly] = useState<boolean>(false);
 	const { user } = useAuth();
 	const { message } = App.useApp();
 	const [isOpenModal, setIsOpenModal] = useState(false);
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+	const [type, setType] = useState<string>("");
 
 	const [markAsPaid, { loading: paidLoading }] = useMutation(MARK_AS_PAID);
 
@@ -268,7 +272,7 @@ const MemberSelectTable = ({
 		setSelectedUsers((prev) =>
 			prev.map((row) =>
 				row.user._id === userId
-					? { ...row, splitPercentage: paidPercentage, amount, addOns: [] }
+					? { ...row, splitPercentage: paidPercentage, amount }
 					: row,
 			),
 		);
@@ -300,15 +304,20 @@ const MemberSelectTable = ({
 		});
 	};
 
-	const handleOpenAdd = (userId: string) => {
+	const handleOpenAdd = (userId: string, itemType: string) => {
+		console.log("Opening modal with type:", itemType);
 		setSelectedUserId(userId);
+		setType(itemType);
 		setIsOpenModal(true);
 	};
 
-	const handleAddItems = (addOnAmount: number) => {
-		console.log("addOnAmount", addOnAmount);
+	const handleAddItems = (amountInputted: number) => {
+		console.log("handleAddItems called with type:", type);
 		if (!selectedUserId) return;
-
+		if (type === "DEDUCTION" && amountInputted <= 0) {
+			message.error("Deduction amount must be greater than 0.");
+			return;
+		}
 		if (totalAmount <= 0) {
 			message.error("Total amount must be greater than 0 to add items.");
 			setIsOpenModal(false);
@@ -316,36 +325,76 @@ const MemberSelectTable = ({
 			return;
 		}
 
-		setSelectedUsers((prev) =>
-			prev.map((member): UpdatedMemberExpense => {
-				if (member.user._id === selectedUserId) {
-					const newAmount = (member.amount || 0) + addOnAmount;
-					console.log("newAmount", newAmount);
+		// Validate BEFORE updating state
+		if (type === "DEDUCTION") {
+			const selectedMember = selectedUsers.find(
+				(m) => m.user._id === selectedUserId,
+			);
+			if (
+				!selectedMember ||
+				selectedMember.amount === undefined ||
+				selectedMember.amount === null ||
+				selectedMember.amount <= 0
+			) {
+				message.error(
+					"Cannot add deduction to a member with no assigned amount.",
+				);
+				setIsOpenModal(false);
+				setSelectedUserId(null);
+				setType("");
+				return;
+			}
+		}
 
-					const newPercentage =
-						totalAmount > 0
-							? roundToTwoDecimals((newAmount / totalAmount) * 100)
-							: 0;
-					return {
-						...member,
-						amount: newAmount,
-						splitPercentage: newPercentage,
-						addOns: Array.isArray(member.addOns)
-							? [...member.addOns, addOnAmount]
-							: [addOnAmount],
-					};
+		setSelectedUsers((prev) =>
+			prev.map((member): MemberExpense => {
+				if (member.user._id === selectedUserId) {
+					if (type === "ADD_ON") {
+						const newAmount = (member.amount || 0) + amountInputted;
+						const newPercentage =
+							totalAmount > 0
+								? roundToTwoDecimals((newAmount / totalAmount) * 100)
+								: 0;
+						return {
+							...member,
+							splitPercentage: newPercentage,
+							addOns: Array.isArray(member.addOns)
+								? [...member.addOns, amountInputted]
+								: [amountInputted],
+						};
+					} else if (type === "DEDUCTION") {
+						const newAmount = (member.amount || 0) - amountInputted;
+						const newPercentage =
+							totalAmount > 0
+								? roundToTwoDecimals((newAmount / totalAmount) * 100)
+								: 0;
+						return {
+							...member,
+							splitPercentage: newPercentage,
+							deductions: Array.isArray(member.deductions)
+								? [...member.deductions, amountInputted]
+								: [amountInputted],
+						};
+					}
 				}
 				return member;
 			}),
 		);
+
+		setFormData({ amount: (formData?.amount || 0) - amountInputted });
 		setSelectedUserId(null);
 		setIsOpenModal(false);
-		message.success("Add-on amount added successfully");
+		setType(""); // Reset type when done
+		message.success(
+			type === "ADD_ON"
+				? "Add-on amount added successfully"
+				: "Deduction added successfully",
+		);
 	};
-
+	console.log("formData", formData.amount);
 	const isPaidByCurrentUser = paidBy === currentUser?._id;
 
-	const columns: TableColumnsType<UpdatedMemberExpense> = [
+	const columns: TableColumnsType<MemberExpense> = [
 		{
 			title: "Full Name",
 			key: "fullName",
@@ -376,7 +425,7 @@ const MemberSelectTable = ({
 		{
 			title: <div style={{ textAlign: "right" }}>Amount</div>,
 			key: "amount",
-			width: 180,
+			width: 160,
 			align: "right",
 			render: (_, record) => (
 				<Flex>
@@ -389,19 +438,155 @@ const MemberSelectTable = ({
 						step={0.01}
 						style={{ width: "100%" }}
 					/>
-					<Button
-						type="text"
-						onClick={() => handleOpenAdd(record?.user._id)}
-						style={{ marginLeft: 8 }}
-					>
-						<PlusCircleFilled
-							color="green"
-							size={17}
-							style={{ fontSize: 18, color: "green" }}
-						/>
-					</Button>
 				</Flex>
 			),
+		},
+		{
+			title: <div style={{ textAlign: "center" }}>Add Ons</div>,
+			key: "addOns",
+			width: 160,
+			align: "center",
+			render: (_, record) => {
+				const totalAddOns =
+					record?.addOns?.reduce((sum, amount) => sum + amount, 0) || 0;
+				return (
+					<Flex
+						align="center"
+						justify="space-between"
+						gap={8}
+						style={{ width: "100%" }}
+					>
+						{totalAddOns > 0 ? (
+							<>
+								<Typography.Text
+									style={{ fontWeight: 500, flex: 1, textAlign: "right" }}
+								>
+									{formatCurrency(totalAddOns || 0)}
+								</Typography.Text>
+								<Button
+									type="text"
+									size="small"
+									onClick={() => handleOpenAdd(record?.user._id, "ADD_ON")}
+									icon={
+										<PlusCircleFilled
+											style={{ fontSize: 18, color: "green" }}
+										/>
+									}
+									style={{ padding: 0, minWidth: 32, height: 32 }}
+								/>
+							</>
+						) : (
+							<>
+								<Typography.Text
+									style={{
+										fontWeight: 500,
+										flex: 1,
+										textAlign: "right",
+										color: "#999",
+									}}
+								>
+									₱0.00
+								</Typography.Text>
+								<Button
+									type="text"
+									size="small"
+									key="add_on"
+									onClick={() => handleOpenAdd(record?.user._id, "ADD_ON")}
+									icon={
+										<PlusCircleFilled
+											style={{ fontSize: 18, color: "green" }}
+										/>
+									}
+									style={{ padding: 0, minWidth: 32, height: 32 }}
+								/>
+							</>
+						)}
+					</Flex>
+				);
+			},
+		},
+		{
+			title: <div style={{ textAlign: "center" }}>Deductions</div>,
+			key: "deductions",
+			width: 160,
+			align: "center",
+			render: (_, record) => {
+				const totalDeductions =
+					record?.deductions?.reduce((sum, amount) => sum + amount, 0) || 0;
+				return (
+					<Flex
+						align="center"
+						justify="space-between"
+						gap={8}
+						style={{ width: "100%" }}
+					>
+						{totalDeductions > 0 ? (
+							<>
+								<Typography.Text
+									style={{ fontWeight: 500, flex: 1, textAlign: "right" }}
+								>
+									{formatCurrency(totalDeductions || 0)}
+								</Typography.Text>
+								<Button
+									type="text"
+									size="small"
+									key="deduction"
+									onClick={() => handleOpenAdd(record?.user._id, "DEDUCTION")}
+									icon={
+										<PlusCircleFilled
+											style={{ fontSize: 18, color: "green" }}
+										/>
+									}
+									style={{ padding: 0, minWidth: 32, height: 32 }}
+								/>
+							</>
+						) : (
+							<>
+								<Typography.Text
+									style={{
+										fontWeight: 500,
+										flex: 1,
+										textAlign: "right",
+										color: "#999",
+									}}
+								>
+									₱0.00
+								</Typography.Text>
+								<Button
+									type="text"
+									size="small"
+									onClick={() => handleOpenAdd(record?.user._id, "DEDUCTION")}
+									icon={
+										<PlusCircleFilled
+											style={{ fontSize: 18, color: "green" }}
+										/>
+									}
+									style={{ padding: 0, minWidth: 32, height: 32 }}
+								/>
+							</>
+						)}
+					</Flex>
+				);
+			},
+		},
+		{
+			title: <div style={{ textAlign: "center" }}>Balance</div>,
+			key: "balance",
+			width: 160,
+			align: "center",
+			render: (_, record) => {
+				record.amount = record.amount || 0;
+				const totalAddOns =
+					record?.addOns?.reduce((sum, amount) => sum + amount, 0) || 0;
+				const totalDeductions =
+					record?.deductions?.reduce((sum, amount) => sum + amount, 0) || 0;
+				const balance = record.amount + totalAddOns - totalDeductions;
+				return (
+					<Typography.Text style={{ fontWeight: 500 }}>
+						{formatCurrency(balance)}
+					</Typography.Text>
+				);
+			},
 		},
 		{
 			title: <div style={{ textAlign: "center" }}>Status</div>,
@@ -549,6 +734,7 @@ const MemberSelectTable = ({
 				dataSource={selectedUsers}
 				rowKey={(record) => record.user._id}
 				pagination={false}
+				loading={paidLoading}
 				expandable={{
 					expandedRowRender: (record) => {
 						if (!Array.isArray(record.addOns) || record.addOns.length === 0) {
@@ -557,7 +743,7 @@ const MemberSelectTable = ({
 
 						const handleRemoveAddOn = (addOnIndex: number) => {
 							setSelectedUsers((prev) =>
-								prev.map((member): UpdatedMemberExpense => {
+								prev.map((member): MemberExpense => {
 									if (member.user._id === record.user._id) {
 										// Remove the add-on at the specified index
 										const newAddOns =
@@ -590,42 +776,26 @@ const MemberSelectTable = ({
 							message.success("Add-on removed successfully");
 						};
 
-						const totalAddOns = record.addOns.reduce(
-							(sum, amount) => sum + amount,
-							0,
-						);
-
 						return (
-							<div>
-								<List
-									header={<strong>Add-ons:</strong>}
-									dataSource={record.addOns}
-									renderItem={(item, index) => (
-										<List.Item
-											actions={[
-												<XIcon
-													key="remove"
-													color="red"
-													onClick={() => handleRemoveAddOn(index)}
-												/>,
-											]}
-										>
-											<Typography.Text type="success">
-												{index + 1}. {formatCurrency(item)}
-											</Typography.Text>
-										</List.Item>
-									)}
-								/>
-								<div
-									style={{
-										marginTop: 8,
-										fontWeight: "bold",
-										textAlign: "right",
-									}}
-								>
-									Total Add-ons: {formatCurrency(totalAddOns)}
-								</div>
-							</div>
+							<List
+								header={<strong>Add-ons:</strong>}
+								dataSource={record.addOns}
+								renderItem={(item, index) => (
+									<List.Item
+										actions={[
+											<XIcon
+												key="remove"
+												color="red"
+												onClick={() => handleRemoveAddOn(index)}
+											/>,
+										]}
+									>
+										<Typography.Text type="success">
+											{index + 1}. {formatCurrency(item)}
+										</Typography.Text>
+									</List.Item>
+								)}
+							/>
 						);
 					},
 				}}
@@ -657,6 +827,7 @@ const MemberSelectTable = ({
 					onAddItems={handleAddItems}
 					setSelectedUsers={setSelectedUsers}
 					selectedUsers={selectedUsers}
+					type={type}
 				/>
 			)}
 		</Card>

@@ -75,6 +75,7 @@ const ExpenseForm = () => {
 					isUploading={isUploading}
 					upsertLoading={upsertLoading}
 					onMarkAsPaid={handleMarkAsPaid}
+					formData={formData}
 				/>
 			</form>
 

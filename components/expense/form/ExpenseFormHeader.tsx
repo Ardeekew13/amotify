@@ -1,3 +1,4 @@
+import { ExpenseStatus } from "@/interface/common/common";
 import { Tag, Typography } from "antd";
 
 const { Title, Text } = Typography;
@@ -7,16 +8,24 @@ interface ExpenseFormHeaderProps {
 	permissions: any;
 }
 
-export const ExpenseFormHeader = ({ expense, permissions }: ExpenseFormHeaderProps) => {
+export const ExpenseFormHeader = ({
+	expense,
+	permissions,
+}: ExpenseFormHeaderProps) => {
 	const getBadgeColor = () => {
-		const variant = permissions.getBadgeVariant();
-		if (variant === "default") return "default";
-		if (variant === "secondary") return "blue";
-		return "default";
+		if (expense?.status === ExpenseStatus.AWAITING_PAYMENT) return "blue";
+		if (expense?.status === ExpenseStatus.COMPLETED) return "green";
 	};
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+		<div
+			style={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				marginBottom: 24,
+			}}
+		>
 			<div>
 				<Title level={1} style={{ margin: 0, marginBottom: 4 }}>
 					{expense ? "Edit Expense" : "Add Expense"}

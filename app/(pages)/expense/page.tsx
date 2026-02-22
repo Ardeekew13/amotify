@@ -51,7 +51,7 @@ export default function ExpensePage() {
 			</div>
 		);
 	}
-	console.log("isNavigating", isNavigating);
+
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>

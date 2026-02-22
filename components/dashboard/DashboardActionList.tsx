@@ -32,7 +32,7 @@ export const DashboardActionList = ({
         text: `You owe ${formatCurrency(userSplit.amount)} to ${
           item.paidByUser.firstName
         }`,
-        action: "Mark as Paid",
+        action: "Pay",
         status: MemberExpenseStatus.PENDING,
       };
     }

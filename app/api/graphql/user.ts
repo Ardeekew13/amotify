@@ -28,6 +28,8 @@ export const ME_QUERY = gql`
         firstName
         lastName
         userName
+        qrCodeUrl
+        qrCodePublicId
       }
     }
   }
@@ -78,3 +80,65 @@ export const LOGIN_MUTATION = gql`
 	}
 `;
 
+export const UPDATE_QR_CODE = gql`
+	mutation UpdateQRCode($qrCodeUrl: String!, $qrCodePublicId: String!) {
+		updateQRCode(qrCodeUrl: $qrCodeUrl, qrCodePublicId: $qrCodePublicId) {
+			success
+			message
+			user {
+				_id
+				firstName
+				lastName
+				userName
+				qrCodeUrl
+				qrCodePublicId
+			}
+		}
+	}
+`;
+
+export const UPDATE_PROFILE = gql`
+	mutation UpdateProfile(
+		$firstName: String
+		$lastName: String
+		$qrCodeUrl: String
+		$qrCodePublicId: String
+	) {
+		updateProfile(
+			input: {
+				firstName: $firstName
+				lastName: $lastName
+				qrCodeUrl: $qrCodeUrl
+				qrCodePublicId: $qrCodePublicId
+			}
+		) {
+			success
+			message
+			user {
+				_id
+				firstName
+				lastName
+				userName
+				qrCodeUrl
+				qrCodePublicId
+			}
+		}
+	}
+`;
+
+export const DELETE_QR_CODE = gql`
+	mutation DeleteQRCode {
+		deleteQRCode {
+			success
+			message
+			user {
+				_id
+				firstName
+				lastName
+				userName
+				qrCodeUrl
+				qrCodePublicId
+			}
+		}
+	}
+`;

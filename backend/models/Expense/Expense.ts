@@ -10,6 +10,8 @@ interface IMemberExpense {
 	amount: number;
 	splitPercentage: number;
 	status: MemberExpenseStatus;
+	addOns?: number[];
+	deductions?: number[];
 }
 
 export interface IExpense extends Document {
@@ -47,6 +49,14 @@ const MemberExpenseSchema = new Schema<IMemberExpense>(
 			type: String,
 			enum: Object.values(MemberExpenseStatus),
 			required: true,
+		},
+		addOns: {
+			type: [Number],
+			default: [],
+		},
+		deductions: {
+			type: [Number],
+			default: [],
 		},
 	},
 	{ _id: false },

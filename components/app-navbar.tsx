@@ -2,11 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-	LayoutDashboard,
-	Receipt,
-	LogOut,
-} from "lucide-react";
+import { LayoutDashboard, Receipt, LogOut, UserIcon } from "lucide-react";
 import { Button, Avatar, Dropdown, Typography } from "antd";
 import type { MenuProps } from "antd";
 import { useAuthContext } from "@/components/auth/AuthProvider";
@@ -29,19 +25,28 @@ const navItems = [
 export function AppNavbar() {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { user, logout } = useAuthContext();
+	const { user, clearAuth } = useAuthContext();
 
-	const handleLogout = () => {
-		logout();
+	const handleLogout = async () => {
+		await clearAuth();
 		router.push("/login");
 	};
 
-	const dropdownItems: MenuProps['items'] = [
+	const dropdownItems: MenuProps["items"] = [
 		{
-			key: 'logout',
+			key: "profile",
+			label: "Profile",
+			icon: <UserIcon style={{ marginRight: 8, width: 16, height: 16 }} />,
+			onClick: () => router.push("/profile"),
+			danger: false,
+		},
+		{
+			key: "logout",
 			label: (
 				<span onClick={handleLogout}>
-					<LogOut style={{ marginRight: 8, width: 16, height: 16, display: 'inline' }} />
+					<LogOut
+						style={{ marginRight: 8, width: 16, height: 16, display: "inline" }}
+					/>
 					Log out
 				</span>
 			),
@@ -49,30 +54,32 @@ export function AppNavbar() {
 	];
 
 	return (
-		<header style={{
-			position: 'sticky',
-			top: 0,
-			zIndex: 50,
-			display: 'flex',
-			height: 64,
-			alignItems: 'center',
-			justifyContent: 'space-between',
-			width: '100%',
-			gap: 16,
-			backgroundColor: '#fff',
-			padding: '0 24px',
-			borderBottom: '1px solid #f0f0f0'
-		}}>
-			<div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+		<header
+			style={{
+				position: "sticky",
+				top: 0,
+				zIndex: 50,
+				display: "flex",
+				height: 64,
+				alignItems: "center",
+				justifyContent: "space-between",
+				width: "100%",
+				gap: 16,
+				backgroundColor: "#fff",
+				padding: "0 24px",
+				borderBottom: "1px solid #f0f0f0",
+			}}
+		>
+			<div style={{ display: "flex", alignItems: "center", gap: 24 }}>
 				<Text
 					strong
-					style={{ cursor: 'pointer', fontSize: 18 }}
+					style={{ cursor: "pointer", fontSize: 18 }}
 					onClick={() => router.push("/dashboard")}
 				>
 					Amotify
 				</Text>
 
-				<nav style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+				<nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
 					{navItems.map((item) => {
 						const Icon = item.icon;
 						const isActive = pathname.startsWith(item.url);
@@ -97,18 +104,28 @@ export function AppNavbar() {
 					<Button
 						type="text"
 						style={{
-							display: 'flex',
-							alignItems: 'center',
+							display: "flex",
+							alignItems: "center",
 							gap: 8,
-							height: 32,
-							width: 160,
-							justifyContent: 'flex-end'
+							height: 40,
+							padding: "4px 8px",
 						}}
 					>
-						<Avatar size={36} style={{ backgroundColor: '#22c55e' }}>
-							{user?.firstName?.[0]}{user?.lastName?.[0]}
+						<Avatar 
+							size={32} 
+							style={{ 
+								backgroundColor: "#22c55e",
+								color: "#fff",
+								fontWeight: "600",
+								fontSize: "14px"
+							}}
+						>
+							{user?.firstName?.[0]?.toUpperCase()}
+							{user?.lastName?.[0]?.toUpperCase()}
 						</Avatar>
-						<Text>{user.firstName} {user.lastName}</Text>
+						<Text style={{ color: "#000" }}>
+							{user.firstName} {user.lastName}
+						</Text>
 					</Button>
 				</Dropdown>
 			)}

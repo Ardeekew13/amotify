@@ -31,6 +31,8 @@ export interface User {
 	firstName: string;
 	lastName: string;
 	userName: string;
+	qrCodeUrl?: string;
+	qrCodePublicId?: string;
 	createdAt: string;
 	updatedAt: string;
 }

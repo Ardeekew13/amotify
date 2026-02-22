@@ -31,6 +31,8 @@ export const expenseTypeDefs = gql`
 		amount: Float!
 		splitPercentage: Float!
 		status: MemberExpenseStatus
+		addOns: [Float]
+		deductions: [Float]
 	}
 
 	input CreateExpenseInput {
