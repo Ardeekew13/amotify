@@ -2,29 +2,16 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 import { useAuth as useAuthHook } from "@/hooks/useAuth";
-
-interface User {
-	_id: string;
-	firstName: string;
-	lastName: string;
-	userName: string;
-}
+import { User } from "@/interface/userInterface";
 
 interface AuthContextType {
 	user: User | null;
 	token: string | null;
+	status: "loading" | "authenticated" | "unauthenticated";
 	isAuthenticated: boolean;
 	isLoading: boolean;
-	status: "loading" | "authenticated" | "unauthenticated";
-	login: (userName: string, password: string) => Promise<any>;
-	signup: (
-		firstName: string,
-		lastName: string,
-		userName: string,
-		password: string,
-	) => Promise<any>;
-	logout: () => void;
-	getToken: () => string | null;
+	setAuth: (user: User, token: string) => Promise<void>;
+	clearAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

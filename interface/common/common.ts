@@ -22,6 +22,8 @@ export type MemberExpense = {
 	splitPercentage?: number;
 	status: MemberExpenseStatus;
 	_id: string;
+	addOns?: number[];
+	deductions?: number[];
 };
 
 export type Expense = {

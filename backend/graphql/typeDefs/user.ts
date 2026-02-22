@@ -6,6 +6,8 @@ export const userTypeDefs = gql`
 		firstName: String!
 		lastName: String!
 		userName: String!
+		qrCodeUrl: String
+		qrCodePublicId: String
 		createdAt: String!
 		updatedAt: String!
 	}
@@ -41,6 +43,13 @@ export const userTypeDefs = gql`
 		password: String!
 	}
 
+	input UpdateProfileInput {
+		firstName: String
+		lastName: String
+		qrCodeUrl: String
+		qrCodePublicId: String
+	}
+
 	extend type Query {
 		getUsersExcludeSelf(search: String, _id: ID!): UsersResponse!
 		getOneUser(_id: ID!): UserResponse!
@@ -51,5 +60,7 @@ export const userTypeDefs = gql`
 		createUser(input: CreateUserInput!): AuthResponse!
 		login(input: LoginInput!): AuthResponse!
 		deleteUser(_id: ID!): UserResponse!
+		updateProfile(input: UpdateProfileInput!): UserResponse!
+		deleteQRCode: UserResponse!
 	}
 `;

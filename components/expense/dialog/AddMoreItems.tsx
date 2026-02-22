@@ -1,4 +1,4 @@
-import { UpdatedMemberExpense } from "@/hooks/useExpenseForm";
+import { MemberExpense } from "@/interface/common/common";
 import { App, Button, Form, InputNumber, Modal } from "antd";
 
 interface AddMoreItemsProps {
@@ -6,8 +6,9 @@ interface AddMoreItemsProps {
 	setOpen: (open: boolean) => void;
 	loading: boolean;
 	onAddItems: (items: any) => void;
-	setSelectedUsers?: (users: UpdatedMemberExpense[]) => void;
-	selectedUsers?: UpdatedMemberExpense[];
+	setSelectedUsers?: (users: MemberExpense[]) => void;
+	selectedUsers?: MemberExpense[];
+	type: String;
 }
 
 const AddMoreItems = ({
@@ -15,13 +16,13 @@ const AddMoreItems = ({
 	setOpen,
 	loading,
 	onAddItems,
+	type,
 }: AddMoreItemsProps) => {
 	const [form] = Form.useForm();
 	const { message } = App.useApp();
 
 	const handleSubmit = (values: { amount: number }) => {
 		const { amount } = values;
-		console.log("Submitted amount:", amount);
 		if (!amount || amount <= 0) {
 			return message.error("Amount must be greater than 0");
 		}
@@ -31,12 +32,12 @@ const AddMoreItems = ({
 	};
 	return (
 		<Modal
-			title="Add More Items"
+			title={type === "ADD_ON" ? "Add Additional Items" : "Add Deduction"}
 			footer={
 				<>
 					<Button onClick={() => setOpen(false)}>Close</Button>
 					<Button type="primary" form="addOns" htmlType="submit">
-						Add Item
+						{type === "ADD_ON" ? "Add Additional Items" : "Add Deduction"}
 					</Button>
 				</>
 			}
@@ -50,7 +51,11 @@ const AddMoreItems = ({
 					name="amount"
 					rules={[{ required: true, message: "Please enter an amount" }]}
 				>
-					<InputNumber placeholder="Enter amount" type="number" style={{width:"100%"}} />
+					<InputNumber
+						placeholder="Enter amount"
+						type="number"
+						style={{ width: "100%" }}
+					/>
 				</Form.Item>
 			</Form>
 		</Modal>

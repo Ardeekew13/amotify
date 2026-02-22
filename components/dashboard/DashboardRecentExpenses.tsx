@@ -45,8 +45,6 @@ export const DashboardRecentExpenses = ({
 			dataIndex: "split",
 			key: "amount",
 			render: (split: any[], record: Expense) => {
-				console.log("Rendering amount for record:", record);
-				console.log("split data:", split);
 				// Find the current user's split amount
 				const userSplit = split?.find((s) => s.user._id === user?._id);
 				const amount = userSplit?.amount || 0;

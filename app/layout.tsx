@@ -8,10 +8,10 @@ import { AntdProvider } from "@/lib/antd-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Amotify",
-  description: "A modern full-stack template with shadcn/ui, GraphQL, and MongoDB",
+  title: "Amotify - Smart Expense Tracking & Splitting",
+  description: "Simplify group expenses with Amotify. Track, split, and manage shared costs effortlessly with QR code payments and real-time expense management.",
   icons: {
-    icon: 'data:,',
+    icon: '/amotify.png',
   },
 };
 

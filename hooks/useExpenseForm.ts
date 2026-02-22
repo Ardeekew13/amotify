@@ -29,10 +29,6 @@ export interface FormData {
 	paidByUser: User | null;
 }
 
-export interface UpdatedMemberExpense extends MemberExpense {
-	addOns?: number[];
-}
-
 export const useExpenseForm = () => {
 	const params = useParams();
 	const router = useRouter();
@@ -51,7 +47,7 @@ export const useExpenseForm = () => {
 		paidByUser: null,
 	});
 
-	const [selectedUsers, setSelectedUsers] = useState<UpdatedMemberExpense[]>(
+	const [selectedUsers, setSelectedUsers] = useState<MemberExpense[]>(
 		[],
 	);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);

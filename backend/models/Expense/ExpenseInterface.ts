@@ -6,6 +6,8 @@ export interface MemberExpenseInput {
 	amount: number;
 	splitPercentage: number;
 	status: MemberExpenseStatus;
+	addOns?: number[];
+	deductions?: number[];
 }
 
 export interface CreateExpenseInput {

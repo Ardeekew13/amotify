@@ -64,6 +64,7 @@ export const GET_EXPENSE_BY_ID = gql`
 					_id
 					firstName
 					lastName
+					qrCodeUrl
 				}
 				status
 				createdAt

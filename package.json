@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:new-fields": "npx tsx scripts/migrate-new-fields.ts"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^2.1.0",
@@ -19,6 +20,7 @@
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.0",
     "dayjs": "^1.11.19",
+    "dotenv": "^17.3.1",
     "graphql": "^16.12.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.316.0",

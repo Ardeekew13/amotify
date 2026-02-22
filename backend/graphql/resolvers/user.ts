@@ -238,5 +238,114 @@ export const userResolvers = {
 				};
 			}
 		},
+
+		deleteQRCode: async (_: any, __: any, context: GraphQLContext) => {
+			try {
+				const userId = context.userId;
+
+				if (!userId) {
+					return {
+						success: false,
+						message: "Not authenticated",
+						user: null,
+					};
+				}
+
+				const user = await User.findByIdAndUpdate(
+					userId,
+					{
+						qrCodeUrl: null,
+						qrCodePublicId: null,
+					},
+					{ new: true },
+				).select("-password");
+
+				if (!user) {
+					return {
+						success: false,
+						message: "User not found",
+						user: null,
+					};
+				}
+
+				return {
+					success: true,
+					message: "QR code deleted successfully",
+					user,
+				};
+			} catch (error: any) {
+				return {
+					success: false,
+					message: error.message || "Failed to delete QR code",
+					user: null,
+				};
+			}
+		},
+
+		updateProfile: async (
+			_: any,
+			{
+				input,
+			}: {
+				input: {
+					firstName?: string;
+					lastName?: string;
+					qrCodeUrl?: string;
+					qrCodePublicId?: string;
+				};
+			},
+			context: GraphQLContext,
+		) => {
+			try {
+				const userId = context.userId;
+
+				if (!userId) {
+					return {
+						success: false,
+						message: "Not authenticated",
+						user: null,
+					};
+				}
+
+				// Build update object with only provided fields
+				const updateData: any = {};
+				if (input.firstName !== undefined)
+					updateData.firstName = input.firstName;
+				if (input.lastName !== undefined) updateData.lastName = input.lastName;
+				if (input.qrCodeUrl !== undefined)
+					updateData.qrCodeUrl = input.qrCodeUrl;
+				if (input.qrCodePublicId !== undefined)
+					updateData.qrCodePublicId = input.qrCodePublicId;
+
+				const user = await User.findByIdAndUpdate(
+					userId,
+					{ $set: updateData },
+					{ new: true, runValidators: true },
+				).select("-password");
+
+				// Verify the update by fetching again
+				const verifyUser = await User.findById(userId).select("-password");
+
+				if (!user) {
+					return {
+						success: false,
+						message: "User not found",
+						user: null,
+					};
+				}
+
+				return {
+					success: true,
+					message: "Profile updated successfully",
+					user,
+				};
+			} catch (error: any) {
+				return {
+					success: false,
+					message: error.message || "Failed to update profile",
+					user: null,
+				};
+			}
+		},
 	},
 };

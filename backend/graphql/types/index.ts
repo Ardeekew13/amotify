@@ -24,6 +24,8 @@ export const sharedTypes = gql`
 		lastName: String!
 		email: String!
 		userName: String
+		qrCodeUrl: String
+		qrCodePublicId: String
 		createdAt: String
 		updatedAt: String
 	}
@@ -34,6 +36,8 @@ export const sharedTypes = gql`
 		amount: Float!
 		splitPercentage: Float!
 		status: String
+		addOns: [Float]
+		deductions: [Float]
 	}
 
 	# ================================

@@ -5,6 +5,8 @@ export interface IUser extends Document {
 	lastName: string;
 	userName: string;
 	password: string;
+	qrCodeUrl?: string;
+	qrCodePublicId?: string;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -33,6 +35,12 @@ const UserSchema = new Schema<IUser>(
 			type: String,
 			required: [true, "Password is required"],
 			minlength: [6, "Password must be at least 6 characters"],
+		},
+		qrCodeUrl: {
+			type: String,
+		},
+		qrCodePublicId: {
+			type: String,
 		},
 	},
 	{
