@@ -38,6 +38,7 @@ export const sharedTypes = gql`
 		status: String
 		addOns: [Float]
 		deductions: [Float]
+		balance: Float
 	}
 
 	# ================================

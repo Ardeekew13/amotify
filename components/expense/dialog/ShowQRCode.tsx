@@ -25,15 +25,16 @@ const ShowQRCode = ({
 			onOk={onMarkAsPaid}
 		>
 			<div style={{ textAlign: "center" }}>
-				<Image
-					src={
-						expense.paidByUser?.qrCodeUrl ||
-						"https://via.placeholder.com/200x200.png?text=QR+Code"
-					}
-					alt="QR Code"
-					width={500}
-					height={600}
-				/>
+				{expense.paidByUser?.qrCodeUrl ? (
+					<Image
+						src={expense.paidByUser.qrCodeUrl}
+						alt="QR Code"
+						width={500}
+						height={600}
+					/>
+				) : (
+					<p>No QR Code available</p>
+				)}
 			</div>
 		</Modal>
 	);

@@ -12,6 +12,7 @@ interface IMemberExpense {
 	status: MemberExpenseStatus;
 	addOns?: number[];
 	deductions?: number[];
+	balance?: number;
 }
 
 export interface IExpense extends Document {
@@ -57,6 +58,9 @@ const MemberExpenseSchema = new Schema<IMemberExpense>(
 		deductions: {
 			type: [Number],
 			default: [],
+		},
+		balance: {
+			type: Number,
 		},
 	},
 	{ _id: false },

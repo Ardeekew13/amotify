@@ -33,6 +33,7 @@ export const expenseTypeDefs = gql`
 		status: MemberExpenseStatus
 		addOns: [Float]
 		deductions: [Float]
+		balance: Float
 	}
 
 	input CreateExpenseInput {
