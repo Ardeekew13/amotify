@@ -186,13 +186,37 @@ const MemberSelectTable = ({
 			} else {
 				// Scenario: No members have amounts set - split evenly among all
 				const splitAmount = totalAmount / selectedUsers.length;
+				const roundedAmount = roundToTwoDecimals(splitAmount);
 
 				// Create updated members with split amounts
-				let updatedMembers = selectedUsers.map((member) => ({
+				let updatedMembers = selectedUsers.map((member, index) => ({
 					...member,
-					amount: roundToTwoDecimals(splitAmount),
+					amount: roundedAmount,
 					splitPercentage: 0, // Will be calculated below
 				}));
+
+				// Calculate the total after rounding
+				const totalAfterRounding = updatedMembers.reduce(
+					(sum, member) => sum + member.amount,
+					0,
+				);
+
+				// Add the rounding difference to the paidBy user (owner)
+				const difference = roundToTwoDecimals(totalAmount - totalAfterRounding);
+				if (difference !== 0 && updatedMembers.length > 0) {
+					// Find the index of the user who paid (paidBy)
+					const paidByIndex = updatedMembers.findIndex(
+						(member) => member.user._id === paidBy,
+					);
+
+					// If paidBy user is in the list, add difference to them, otherwise use last member
+					const targetIndex =
+						paidByIndex !== -1 ? paidByIndex : updatedMembers.length - 1;
+
+					updatedMembers[targetIndex].amount = roundToTwoDecimals(
+						updatedMembers[targetIndex].amount + difference,
+					);
+				}
 
 				// Calculate proper percentages that add up to 100%
 				const allAmounts = updatedMembers.map((m) => m.amount);
@@ -348,27 +372,17 @@ const MemberSelectTable = ({
 			prev.map((member): MemberExpense => {
 				if (member.user._id === selectedUserId) {
 					if (type === "ADD_ON") {
-						const newAmount = (member.amount || 0) + amountInputted;
-						const newPercentage =
-							totalAmount > 0
-								? roundToTwoDecimals((newAmount / totalAmount) * 100)
-								: 0;
+						// Don't change amount, just add to addOns array
 						return {
 							...member,
-							splitPercentage: newPercentage,
 							addOns: Array.isArray(member.addOns)
 								? [...member.addOns, amountInputted]
 								: [amountInputted],
 						};
 					} else if (type === "DEDUCTION") {
-						const newAmount = (member.amount || 0) - amountInputted;
-						const newPercentage =
-							totalAmount > 0
-								? roundToTwoDecimals((newAmount / totalAmount) * 100)
-								: 0;
+						// Don't change amount, just add to deductions array
 						return {
 							...member,
-							splitPercentage: newPercentage,
 							deductions: Array.isArray(member.deductions)
 								? [...member.deductions, amountInputted]
 								: [amountInputted],
@@ -379,7 +393,7 @@ const MemberSelectTable = ({
 			}),
 		);
 
-		setFormData({ amount: (formData?.amount || 0) - amountInputted });
+		// Don't modify formData.amount anymore - it should remain the total expense amount
 		setSelectedUserId(null);
 		setIsOpenModal(false);
 		setType(""); // Reset type when done
@@ -685,10 +699,16 @@ const MemberSelectTable = ({
 		(sum, item) => sum + (item.splitPercentage || 0),
 		0,
 	);
-	const totalAmountSum = selectedUsers.reduce(
-		(sum, item) => sum + (item.amount || 0),
-		0,
-	);
+
+	// Calculate total balance (amount + addOns - deductions)
+	const totalBalance = selectedUsers.reduce((sum, item) => {
+		const amount = item.amount || 0;
+		const addOns = item.addOns?.reduce((total, addon) => total + addon, 0) || 0;
+		const deductions =
+			item.deductions?.reduce((total, deduction) => total + deduction, 0) || 0;
+		const balance = amount + addOns - deductions;
+		return sum + balance;
+	}, 0);
 
 	return (
 		<Card
@@ -796,13 +816,11 @@ const MemberSelectTable = ({
 								{formatPercentage(totalSplit)}
 							</div>
 						</Table.Summary.Cell>
-						<Table.Summary.Cell index={2}>
+						<Table.Summary.Cell index={2} colSpan={4}>
 							<div style={{ textAlign: "right", fontWeight: "bold" }}>
-								{formatCurrency(totalAmountSum || 0)}
+								Balance Total: {formatCurrency(totalBalance || 0)}
 							</div>
 						</Table.Summary.Cell>
-						<Table.Summary.Cell index={3} />
-						<Table.Summary.Cell index={4} />
 					</Table.Summary.Row>
 				)}
 			/>
