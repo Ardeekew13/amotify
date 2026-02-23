@@ -224,13 +224,20 @@ export const expenseResolvers = {
 						);
 					});
 
-					// Merge new split data with existing statuses
-					const updatedSplit = input.split.map((member: any) => ({
-						...member,
-						status:
-							existingStatusMap.get(member.userId.toString()) ||
-							MemberExpenseStatus.PENDING,
-					}));
+					// Merge new split data with existing statuses and calculate balance
+					const updatedSplit = input.split.map((member: any) => {
+						const addOnsTotal = (member.addOns || []).reduce((sum: number, val: number) => sum + val, 0);
+						const deductionsTotal = (member.deductions || []).reduce((sum: number, val: number) => sum + val, 0);
+						const balance = member.amount + addOnsTotal - deductionsTotal;
+						
+						return {
+							...member,
+							status:
+								existingStatusMap.get(member.userId.toString()) ||
+								MemberExpenseStatus.PENDING,
+							balance: Math.round(balance * 100) / 100, // Round to 2 decimals
+						};
+					});
 
 					// Determine the overall expense status based on the new split
 					const allPaid = updatedSplit.every(
@@ -264,13 +271,20 @@ export const expenseResolvers = {
 				}
 
 				// Create new expense
-				const splitWithDefaults = input.split.map((member: any) => ({
-					...member,
-					status:
-						member.userId === input.paidBy
-							? MemberExpenseStatus.PAID
-							: member.status || MemberExpenseStatus.PENDING,
-				}));
+				const splitWithDefaults = input.split.map((member: any) => {
+					const addOnsTotal = (member.addOns || []).reduce((sum: number, val: number) => sum + val, 0);
+					const deductionsTotal = (member.deductions || []).reduce((sum: number, val: number) => sum + val, 0);
+					const balance = member.amount + addOnsTotal - deductionsTotal;
+					
+					return {
+						...member,
+						status:
+							member.userId === input.paidBy
+								? MemberExpenseStatus.PAID
+								: member.status || MemberExpenseStatus.PENDING,
+						balance: Math.round(balance * 100) / 100, // Round to 2 decimals
+					};
+				});
 
 				const expense = await Expense.create({
 					title: input.title,

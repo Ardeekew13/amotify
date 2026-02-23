@@ -8,6 +8,7 @@ export interface MemberExpenseInput {
 	status: MemberExpenseStatus;
 	addOns?: number[];
 	deductions?: number[];
+	balance?: number;
 }
 
 export interface CreateExpenseInput {

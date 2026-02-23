@@ -101,138 +101,73 @@ const MemberSelectTable = ({
 
 		// Use newSplitState instead of isSplitEvenly (state hasn't updated yet)
 		if (newSplitState) {
-			// Find members who already have manually set amounts (non-zero and not from previous split)
-			const hasAmountMembers = selectedUsers.filter(
-				(member) => (member.amount ?? 0) > 0,
+			// Calculate total addOns and deductions across all members
+			const totalAddOns = selectedUsers.reduce((sum, member) => {
+				return sum + (member.addOns?.reduce((total, addon) => total + addon, 0) || 0);
+			}, 0);
+
+			const totalDeductions = selectedUsers.reduce((sum, member) => {
+				return sum + (member.deductions?.reduce((total, deduction) => total + deduction, 0) || 0);
+			}, 0);
+
+			// Calculate the remaining amount to split after accounting for addOns and deductions
+			const amountToSplit = totalAmount - totalAddOns + totalDeductions;
+			
+			// Split evenly among ALL members
+			const splitAmount = amountToSplit / selectedUsers.length;
+			const roundedAmount = roundToTwoDecimals(splitAmount);
+
+			// Create updated members with split amounts (keeping their addOns/deductions)
+			let updatedMembers = selectedUsers.map((member) => ({
+				...member,
+				amount: roundedAmount,
+				splitPercentage: 0, // Will be calculated below
+			}));
+
+			// Helper to calculate balance including addOns/deductions
+			const getMemberBalance = (member: MemberExpense) => {
+				const addOns = member.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+				const deductions = member.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+				return (member.amount || 0) + addOns - deductions;
+			};
+
+			// Calculate the total balance after rounding
+			const totalAfterRounding = updatedMembers.reduce(
+				(sum, member) => sum + getMemberBalance(member),
+				0,
 			);
 
-			if (
-				hasAmountMembers.length > 0 &&
-				hasAmountMembers.length < selectedUsers.length
-			) {
-				// Scenario: Some members already have amounts set
-				const totalPaid = hasAmountMembers.reduce(
-					(sum, member) => sum + (member.amount || 0),
-					0,
+			// Add the rounding difference to the paidBy user (owner)
+			const difference = roundToTwoDecimals(totalAmount - totalAfterRounding);
+			if (difference !== 0 && updatedMembers.length > 0) {
+				// Find the index of the user who paid (paidBy)
+				const paidByIndex = updatedMembers.findIndex(
+					(member) => member.user._id === paidBy,
 				);
 
-				const remainingAmount = totalAmount - totalPaid;
-				const membersToSplit = selectedUsers.filter(
-					(member) => (member.amount ?? 0) === 0,
+				// If paidBy user is in the list, add difference to them, otherwise use last member
+				const targetIndex =
+					paidByIndex !== -1 ? paidByIndex : updatedMembers.length - 1;
+
+				updatedMembers[targetIndex].amount = roundToTwoDecimals(
+					updatedMembers[targetIndex].amount + difference,
 				);
-
-				if (membersToSplit.length > 0 && remainingAmount > 0) {
-					const splitAmount = remainingAmount / membersToSplit.length;
-					const roundedAmount = roundToTwoDecimals(splitAmount);
-
-					// Create updated members with split amounts
-					let updatedMembers = selectedUsers.map((member) => {
-						if ((member.amount ?? 0) === 0) {
-							return {
-								...member,
-								amount: roundedAmount,
-								splitPercentage: 0, // Will be calculated below
-							};
-						}
-						return member;
-					});
-
-					// Calculate the total after rounding
-					const totalAfterRounding = updatedMembers.reduce(
-						(sum, member) => sum + (member.amount || 0),
-						0,
-					);
-
-					// Distribute the rounding difference to the last member
-					const difference = roundToTwoDecimals(
-						totalAmount - totalAfterRounding,
-					);
-					if (difference !== 0) {
-						// Find the last member who was assigned the split amount
-						const lastSplitMemberIndex = updatedMembers.reduce(
-							(lastIndex, member, index) => {
-								return member.amount === roundedAmount &&
-									hasAmountMembers.findIndex(
-										(m) => m.user._id === member.user._id,
-									) === -1
-									? index
-									: lastIndex;
-							},
-							-1,
-						);
-
-						if (lastSplitMemberIndex !== -1) {
-							updatedMembers[lastSplitMemberIndex].amount = roundToTwoDecimals(
-								updatedMembers[lastSplitMemberIndex].amount + difference,
-							);
-						}
-					}
-
-					// Calculate proper percentages that add up to 100%
-					const allAmounts = updatedMembers.map((m) => m.amount);
-					const properPercentages = distributePercentages(
-						allAmounts,
-						totalAmount,
-					);
-
-					// Apply the calculated percentages
-					updatedMembers = updatedMembers.map((member, index) => ({
-						...member,
-						splitPercentage: properPercentages[index],
-					}));
-
-					setSelectedUsers(updatedMembers);
-				}
-			} else {
-				// Scenario: No members have amounts set - split evenly among all
-				const splitAmount = totalAmount / selectedUsers.length;
-				const roundedAmount = roundToTwoDecimals(splitAmount);
-
-				// Create updated members with split amounts
-				let updatedMembers = selectedUsers.map((member, index) => ({
-					...member,
-					amount: roundedAmount,
-					splitPercentage: 0, // Will be calculated below
-				}));
-
-				// Calculate the total after rounding
-				const totalAfterRounding = updatedMembers.reduce(
-					(sum, member) => sum + member.amount,
-					0,
-				);
-
-				// Add the rounding difference to the paidBy user (owner)
-				const difference = roundToTwoDecimals(totalAmount - totalAfterRounding);
-				if (difference !== 0 && updatedMembers.length > 0) {
-					// Find the index of the user who paid (paidBy)
-					const paidByIndex = updatedMembers.findIndex(
-						(member) => member.user._id === paidBy,
-					);
-
-					// If paidBy user is in the list, add difference to them, otherwise use last member
-					const targetIndex =
-						paidByIndex !== -1 ? paidByIndex : updatedMembers.length - 1;
-
-					updatedMembers[targetIndex].amount = roundToTwoDecimals(
-						updatedMembers[targetIndex].amount + difference,
-					);
-				}
-
-				// Calculate proper percentages that add up to 100%
-				const allAmounts = updatedMembers.map((m) => m.amount);
-				const properPercentages = distributePercentages(
-					allAmounts,
-					totalAmount,
-				);
-
-				// Apply the calculated percentages
-				updatedMembers = updatedMembers.map((member, index) => ({
-					...member,
-					splitPercentage: properPercentages[index],
-				}));
-
-				setSelectedUsers(updatedMembers);
 			}
+
+			// Calculate proper percentages that add up to 100%
+			const allBalances = updatedMembers.map((m) => getMemberBalance(m));
+			const properPercentages = distributePercentages(
+				allBalances,
+				totalAmount,
+			);
+
+			// Apply the calculated percentages
+			updatedMembers = updatedMembers.map((member, index) => ({
+				...member,
+				splitPercentage: properPercentages[index],
+			}));
+
+			setSelectedUsers(updatedMembers);
 		} else {
 			// Reset all amounts when toggling off
 			setSelectedUsers((prev) =>
@@ -592,7 +527,8 @@ const MemberSelectTable = ({
 					record?.addOns?.reduce((sum, amount) => sum + amount, 0) || 0;
 				const totalDeductions =
 					record?.deductions?.reduce((sum, amount) => sum + amount, 0) || 0;
-				const balance = record.amount + totalAddOns - totalDeductions;
+				// Use stored balance if available, otherwise calculate
+				const balance = record.balance ?? (record.amount + totalAddOns - totalDeductions);
 				return (
 					<Typography.Text style={{ fontWeight: 500 }}>
 						{formatCurrency(balance)}
@@ -702,6 +638,10 @@ const MemberSelectTable = ({
 
 	// Calculate total balance (amount + addOns - deductions)
 	const totalBalance = selectedUsers.reduce((sum, item) => {
+		// Use stored balance if available, otherwise calculate
+		if (item.balance !== undefined && item.balance !== null) {
+			return sum + item.balance;
+		}
 		const amount = item.amount || 0;
 		const addOns = item.addOns?.reduce((total, addon) => total + addon, 0) || 0;
 		const deductions =

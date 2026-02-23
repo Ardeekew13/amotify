@@ -24,6 +24,7 @@ export type MemberExpense = {
 	_id: string;
 	addOns?: number[];
 	deductions?: number[];
+	balance?: number;
 };
 
 export type Expense = {
