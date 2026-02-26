@@ -117,13 +117,6 @@ const MemberSelectTable = ({
 			const splitAmount = amountToSplit / selectedUsers.length;
 			const roundedAmount = roundToTwoDecimals(splitAmount);
 
-			// Create updated members with split amounts (keeping their addOns/deductions)
-			let updatedMembers = selectedUsers.map((member) => ({
-				...member,
-				amount: roundedAmount,
-				splitPercentage: 0, // Will be calculated below
-			}));
-
 			// Helper to calculate balance including addOns/deductions
 			const getMemberBalance = (member: MemberExpense) => {
 				const addOns = member.addOns?.reduce((sum, val) => sum + val, 0) || 0;
@@ -131,9 +124,23 @@ const MemberSelectTable = ({
 				return (member.amount || 0) + addOns - deductions;
 			};
 
+			// Create updated members with split amounts and calculated balance
+			let updatedMembers = selectedUsers.map((member) => {
+				const addOns = member.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+				const deductions = member.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+				const calculatedBalance = roundToTwoDecimals(roundedAmount + addOns - deductions);
+				
+				return {
+					...member,
+					amount: roundedAmount,
+					balance: calculatedBalance,
+					splitPercentage: 0, // Will be calculated below
+				};
+			});
+
 			// Calculate the total balance after rounding
 			const totalAfterRounding = updatedMembers.reduce(
-				(sum, member) => sum + getMemberBalance(member),
+				(sum, member) => sum + (member.balance || 0),
 				0,
 			);
 
@@ -152,10 +159,17 @@ const MemberSelectTable = ({
 				updatedMembers[targetIndex].amount = roundToTwoDecimals(
 					updatedMembers[targetIndex].amount + difference,
 				);
+				
+				// Recalculate balance for the member with the rounding difference
+				const addOns = updatedMembers[targetIndex].addOns?.reduce((sum, val) => sum + val, 0) || 0;
+				const deductions = updatedMembers[targetIndex].deductions?.reduce((sum, val) => sum + val, 0) || 0;
+				updatedMembers[targetIndex].balance = roundToTwoDecimals(
+					updatedMembers[targetIndex].amount + addOns - deductions,
+				);
 			}
 
 			// Calculate proper percentages that add up to 100%
-			const allBalances = updatedMembers.map((m) => getMemberBalance(m));
+			const allBalances = updatedMembers.map((m) => m.balance || 0);
 			const properPercentages = distributePercentages(
 				allBalances,
 				totalAmount,

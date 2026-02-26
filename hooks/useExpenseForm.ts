@@ -155,9 +155,10 @@ export const useExpenseForm = () => {
 		}
 
 		const totalSplit = selectedUsers.reduce((sum, m) => sum + (m?.balance ?? 0), 0);
+		console.log("totalSplit", totalSplit)
 		if (Math.abs(totalSplit - formData.amount) > 0.01) {
 			message.error(
-				`Split total ($${totalSplit.toFixed(2)}) must equal expense amount ($${formData.amount.toFixed(2)})`,
+				`Split total (₱${totalSplit.toFixed(2)}) must equal expense amount (₱${formData.amount.toFixed(2)})`,
 			);
 			return false;
 		}
