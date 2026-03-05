@@ -58,6 +58,9 @@ export const GET_EXPENSE_BY_ID = gql`
 					status
 					amount
 					splitPercentage
+					balance
+					addOns
+					deductions
 				}
 				paidBy
 				paidByUser {
