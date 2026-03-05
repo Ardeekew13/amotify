@@ -204,6 +204,8 @@ const MemberSelectTable = ({
 			);
 			return;
 		}
+		
+		// Calculate total percentage with the new value
 		const totalPercentage = selectedUsers.reduce((sum, item) => {
 			// If this is the user being updated, use the new splitPercentage
 			if (item.user._id === userId) {
@@ -217,20 +219,30 @@ const MemberSelectTable = ({
 			message.error("Total split percentage cannot exceed 100%.");
 			return;
 		}
-		const amountOfThePercentage = (splitPercentage / 100) * totalAmount;
 
-		setSelectedUsers((prev) =>
-			prev.map((row) =>
-				row.user._id === userId
-					? {
-							...row,
-							amount: amountOfThePercentage,
-							addOns: [],
-							splitPercentage,
-						}
-					: row,
-			),
-		);
+		setSelectedUsers((prev) => {
+			const updatedMembers = prev.map((row) => {
+				if (row.user._id === userId) {
+					// Calculate amount from percentage
+					const calculatedAmount = (splitPercentage / 100) * totalAmount;
+					
+					// Recalculate balance with the new amount (keep existing addOns/deductions)
+					const addOns = row.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+					const deductions = row.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+					const newBalance = roundToTwoDecimals(calculatedAmount + addOns - deductions);
+					
+					return {
+						...row,
+						amount: calculatedAmount,
+						balance: newBalance,
+						splitPercentage,
+					};
+				}
+				return row;
+			});
+			
+			return updatedMembers;
+		});
 	};
 
 	const handleAmountChange = (userId: string, amount: number) => {
@@ -238,17 +250,45 @@ const MemberSelectTable = ({
 			message.error("Total Amount must be greater than 0 to set amount.");
 			return;
 		}
-		// Only calculate percentage if totalAmount is valid
-		const paidPercentage =
-			totalAmount > 0 ? roundToTwoDecimals((amount / totalAmount) * 100) : 0;
 
-		setSelectedUsers((prev) =>
-			prev.map((row) =>
-				row.user._id === userId
-					? { ...row, splitPercentage: paidPercentage, amount }
-					: row,
-			),
-		);
+		setSelectedUsers((prev) => {
+			const updatedMembers = prev.map((row) => {
+				if (row.user._id === userId) {
+					// Recalculate balance with the new amount
+					const addOns = row.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+					const deductions = row.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+					const newBalance = roundToTwoDecimals(amount + addOns - deductions);
+					
+					return { 
+						...row, 
+						amount,
+						balance: newBalance,
+					};
+				}
+				return row;
+			});
+			
+			// Recalculate split percentages based on balances
+			const allBalances = updatedMembers.map((m) => {
+				if (m.balance !== undefined && m.balance !== null) {
+					return m.balance;
+				}
+				const addOns = m.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+				const deductions = m.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+				return (m.amount || 0) + addOns - deductions;
+			});
+			
+			const properPercentages = distributePercentages(
+				allBalances,
+				totalAmount,
+			);
+			
+			// Apply the calculated percentages
+			return updatedMembers.map((member, index) => ({
+				...member,
+				splitPercentage: properPercentages[index],
+			}));
+		});
 	};
 
 	const [markReceivePayment, { loading }] = useMutation(MARK_AS_PAID);
@@ -317,30 +357,56 @@ const MemberSelectTable = ({
 			}
 		}
 
-		setSelectedUsers((prev) =>
-			prev.map((member): MemberExpense => {
+		setSelectedUsers((prev) => {
+			const updatedMembers = prev.map((member): MemberExpense => {
 				if (member.user._id === selectedUserId) {
+					let updatedMember = { ...member };
+					
 					if (type === "ADD_ON") {
 						// Don't change amount, just add to addOns array
-						return {
-							...member,
-							addOns: Array.isArray(member.addOns)
-								? [...member.addOns, amountInputted]
-								: [amountInputted],
-						};
+						updatedMember.addOns = Array.isArray(member.addOns)
+							? [...member.addOns, amountInputted]
+							: [amountInputted];
 					} else if (type === "DEDUCTION") {
 						// Don't change amount, just add to deductions array
-						return {
-							...member,
-							deductions: Array.isArray(member.deductions)
-								? [...member.deductions, amountInputted]
-								: [amountInputted],
-						};
+						updatedMember.deductions = Array.isArray(member.deductions)
+							? [...member.deductions, amountInputted]
+							: [amountInputted];
 					}
+					
+					// Recalculate balance for this member
+					const addOns = updatedMember.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+					const deductions = updatedMember.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+					updatedMember.balance = roundToTwoDecimals(
+						(updatedMember.amount || 0) + addOns - deductions
+					);
+					
+					return updatedMember;
 				}
 				return member;
-			}),
-		);
+			});
+			
+			// Recalculate split percentages based on balances
+			const allBalances = updatedMembers.map((m) => {
+				if (m.balance !== undefined && m.balance !== null) {
+					return m.balance;
+				}
+				const addOns = m.addOns?.reduce((sum, val) => sum + val, 0) || 0;
+				const deductions = m.deductions?.reduce((sum, val) => sum + val, 0) || 0;
+				return (m.amount || 0) + addOns - deductions;
+			});
+			
+			const properPercentages = distributePercentages(
+				allBalances,
+				totalAmount,
+			);
+			
+			// Apply the calculated percentages and balances
+			return updatedMembers.map((member, index) => ({
+				...member,
+				splitPercentage: properPercentages[index],
+			}));
+		});
 
 		// Don't modify formData.amount anymore - it should remain the total expense amount
 		setSelectedUserId(null);
