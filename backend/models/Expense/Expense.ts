@@ -84,7 +84,7 @@ const ExpenseSchema = new Schema<IExpense>(
 			validate: {
 				validator: function (this: any, split: IMemberExpense[]) {
 					const totalSplit = split.reduce(
-						(sum, member) => sum + member.amount,
+						(sum, member) => sum + (member?.balance || 0),
 						0,
 					);
 					// Round both values to 2 decimal places before comparison
