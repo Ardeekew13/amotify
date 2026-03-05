@@ -762,6 +762,7 @@ const MemberSelectTable = ({
 				rowKey={(record) => record.user._id}
 				pagination={false}
 				loading={paidLoading || loading}
+				scroll={{x: 1200}}
 				expandable={{
 					expandedRowRender: (record) => {
 						if (!Array.isArray(record.addOns) || record.addOns.length === 0) {

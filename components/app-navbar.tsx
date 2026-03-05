@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Receipt, LogOut, UserIcon } from "lucide-react";
 import { Button, Avatar, Dropdown, Typography } from "antd";
 import type { MenuProps } from "antd";
 import { useAuthContext } from "@/components/auth/AuthProvider";
+import { useEffect, useState } from "react";
 
 const { Text } = Typography;
 
@@ -26,6 +26,22 @@ export function AppNavbar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { user, clearAuth } = useAuthContext();
+	const [showTitle, setShowTitle] = useState(true);
+
+	useEffect(() => {
+		const handleResize = () => {
+			setShowTitle(window.innerWidth > 560);
+		};
+		
+		// Set initial value
+		handleResize();
+		
+		// Add event listener
+		window.addEventListener("resize", handleResize);
+		
+		// Cleanup
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	const handleLogout = async () => {
 		await clearAuth();
@@ -71,13 +87,15 @@ export function AppNavbar() {
 			}}
 		>
 			<div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-				<Text
-					strong
-					style={{ cursor: "pointer", fontSize: 18 }}
-					onClick={() => router.push("/dashboard")}
-				>
-					Amotify
-				</Text>
+				{showTitle && (
+					<Text
+						strong
+						style={{ cursor: "pointer", fontSize: 18 }}
+						onClick={() => router.push("/dashboard")}
+					>
+						Amotify
+					</Text>
+				)}
 
 				<nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
 					{navItems.map((item) => {
@@ -111,13 +129,13 @@ export function AppNavbar() {
 							padding: "4px 8px",
 						}}
 					>
-						<Avatar 
-							size={32} 
-							style={{ 
+						<Avatar
+							size={32}
+							style={{
 								backgroundColor: "#22c55e",
 								color: "#fff",
 								fontWeight: "600",
-								fontSize: "14px"
+								fontSize: "14px",
 							}}
 						>
 							{user?.firstName?.[0]?.toUpperCase()}
