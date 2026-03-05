@@ -83,10 +83,14 @@ const ExpenseSchema = new Schema<IExpense>(
 			required: [true, "Split information is required"],
 			validate: {
 				validator: function (this: any, split: IMemberExpense[]) {
-					const totalSplit = split.reduce(
-						(sum, member) => sum + (member?.balance || 0),
-						0,
-					);
+					// Calculate total balance (amount + addOns - deductions) for each member
+					const totalSplit = split.reduce((sum, member) => {
+						const baseAmount = member?.amount || 0;
+						const addOns = (member?.addOns || []).reduce((total: number, addon: number) => total + addon, 0);
+						const deductions = (member?.deductions || []).reduce((total: number, deduction: number) => total + deduction, 0);
+						const balance = baseAmount + addOns - deductions;
+						return sum + balance;
+					}, 0);
 					// Round both values to 2 decimal places before comparison
 					const roundedSplit = Math.round(totalSplit * 100) / 100;
 					const roundedAmount = Math.round(this.amount * 100) / 100;
