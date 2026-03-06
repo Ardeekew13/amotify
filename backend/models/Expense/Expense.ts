@@ -81,23 +81,6 @@ const ExpenseSchema = new Schema<IExpense>(
 		split: {
 			type: [MemberExpenseSchema],
 			required: [true, "Split information is required"],
-			validate: {
-				validator: function (this: any, split: IMemberExpense[]) {
-					// Calculate total balance (amount + addOns - deductions) for each member
-					const totalSplit = split.reduce((sum, member) => {
-						const baseAmount = member?.amount || 0;
-						const addOns = (member?.addOns || []).reduce((total: number, addon: number) => total + addon, 0);
-						const deductions = (member?.deductions || []).reduce((total: number, deduction: number) => total + deduction, 0);
-						const balance = baseAmount + addOns - deductions;
-						return sum + balance;
-					}, 0);
-					// Round both values to 2 decimal places before comparison
-					const roundedSplit = Math.round(totalSplit * 100) / 100;
-					const roundedAmount = Math.round(this.amount * 100) / 100;
-					return Math.abs(roundedSplit - roundedAmount) < 0.01;
-				},
-				message: "Split amounts must add up to total expense amount",
-			},
 		},
 		paidBy: {
 			type: Schema.Types.ObjectId,
