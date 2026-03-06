@@ -233,6 +233,7 @@ export const useExpenseForm = () => {
 					existingReceiptUrl: [],
 					existingReceiptPublicId: [],
 				});
+				refetch();
 				return;
 			} else {
 				message.error(
@@ -345,5 +346,7 @@ export const useExpenseForm = () => {
 		// Loading states
 		upsertLoading,
 		paidLoading,
+
+		refetchExpense: refetch,
 	};
 };
